@@ -23,6 +23,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   
   // Audio Mode States
   const [audioRevealed, setAudioRevealed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- AUDIO MODE LOGIC ---
@@ -31,8 +32,22 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
       audioRef.current = new Audio(question.audioUrl);
       audioRef.current.volume = 0.8;
       audioRef.current.play().catch(e => console.warn("Preview play blocked", e));
+      
+      // Start Timer
+      const interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            // Auto Stop Audio at 0
+            if (audioRef.current) audioRef.current.pause();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
       return () => {
+        clearInterval(interval);
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current = null;
@@ -43,6 +58,10 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
   const handleAudioReveal = () => {
     setAudioRevealed(true);
+    // Stop audio if it hasn't stopped yet
+    if (audioRef.current) {
+        audioRef.current.pause();
+    }
   };
 
   const handleAudioScore = (multiplier: number) => {
@@ -135,33 +154,50 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
            
            {/* Vinyl Animation */}
            <div className={`
-              w-64 h-64 rounded-full border-8 border-gray-900 bg-black relative shadow-2xl flex items-center justify-center mb-12
-              ${!audioRevealed ? 'animate-spin' : ''}
+              w-64 h-64 rounded-full border-8 border-gray-900 bg-black relative shadow-2xl flex items-center justify-center mb-8
+              ${!audioRevealed && timeLeft > 0 ? 'animate-spin' : ''}
            `} style={{ animationDuration: '3s' }}>
-              {/* Record Label */}
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-magic-pink to-purple-600 border-4 border-white/20 flex items-center justify-center">
                  <span className="text-2xl">🎵</span>
               </div>
-              {/* Grooves */}
-              <div className="absolute inset-2 rounded-full border border-white/5 pointer-events-none"></div>
-              <div className="absolute inset-6 rounded-full border border-white/5 pointer-events-none"></div>
-              <div className="absolute inset-10 rounded-full border border-white/5 pointer-events-none"></div>
            </div>
+
+           {/* Timer Progress */}
+           {!audioRevealed && (
+             <div className="w-96 h-4 bg-gray-700 rounded-full mb-8 overflow-hidden border border-white/20">
+                <div 
+                   className="h-full bg-gradient-to-r from-green-400 to-yellow-400 transition-all duration-1000 ease-linear"
+                   style={{ width: `${(timeLeft / 15) * 100}%` }}
+                ></div>
+             </div>
+           )}
 
            {/* Question / Status */}
            {!audioRevealed ? (
              <div className="text-center animate-pulse">
-               <h2 className="text-4xl font-black text-white mb-4 tracking-widest">LISTENING...</h2>
-               <p className="text-xl text-cyan-300">Guess the Song & Artist</p>
-               <div className="mt-8 bg-white/20 px-8 py-3 rounded-full inline-block">
+               <h2 className="text-4xl font-black text-white mb-4 tracking-widest">
+                 {timeLeft > 0 ? "LISTENING..." : "TIME'S UP"}
+               </h2>
+               <p className="text-xl text-cyan-300">
+                  {question.category === 'Movie Themes' ? 'Guess the Movie!' : 'Guess the Song & Artist'}
+               </p>
+               <div className="mt-8 bg-white/20 px-8 py-3 rounded-full inline-block border border-white/20">
                  Press <span className="font-bold text-white">OK</span> to Reveal
                </div>
              </div>
            ) : (
              <div className="text-center animate-zoom-in">
-               <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8">
-                  <h2 className="text-3xl font-bold text-magic-cyan mb-2">{question.answerReveal?.title}</h2>
-                  <h3 className="text-xl text-white">{question.answerReveal?.artist}</h3>
+               <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8 min-w-[500px]">
+                  {/* Movie Display Logic */}
+                  {question.category === 'Movie Themes' && (
+                    <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Movie / Show</span>
+                  )}
+                  
+                  <h2 className="text-3xl font-bold text-magic-cyan mb-2">{question.answerReveal?.artist}</h2>
+                  
+                  {question.category !== 'Movie Themes' && (
+                     <h3 className="text-xl text-white">{question.answerReveal?.title}</h3>
+                  )}
                </div>
                
                <p className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">Rate Your Answer</p>

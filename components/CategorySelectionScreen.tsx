@@ -9,12 +9,15 @@ interface CategorySelectionScreenProps {
 
 const AVAILABLE_CATEGORIES: TriviaCategory[] = [
   // Standard (The Trivia API)
-  { id: 'film_and_tv', name: 'Film & TV', emoji: '🎬' },
   { id: 'general_knowledge', name: 'General', emoji: '🧠' },
-  { id: 'geography', name: 'Geography', emoji: '🌍' },
+  { id: 'film_and_tv', name: 'Film & TV', emoji: '🎬' },
   { id: 'history', name: 'History', emoji: '📜' },
+  { id: 'geography', name: 'Geography', emoji: '🌍' },
   { id: 'sport_and_leisure', name: 'Sports', emoji: '⚽' },
   { id: 'science', name: 'Science', emoji: '🔬' },
+  { id: 'food_and_drink', name: 'Food', emoji: '🍔' },
+  { id: 'arts_and_literature', name: 'Arts/Lit', emoji: '🎨' },
+  { id: 'society_and_culture', name: 'Culture', emoji: '🏛️' },
   
   // Music (iTunes Custom)
   { id: 'music_2010s', name: '2010s Hits', emoji: '📱' },
@@ -107,22 +110,32 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-4 gap-4 mb-10 w-full max-w-6xl px-8">
+      <div className="grid grid-cols-4 gap-4 mb-10 w-full max-w-6xl px-8 h-[60vh] overflow-y-auto p-4 hide-scrollbar">
         {AVAILABLE_CATEGORIES.map((cat, idx) => {
           const isSelected = selectedIds.includes(cat.id);
           const isFocused = focusIndex === idx;
+          const isMusic = cat.id.startsWith('music_');
+
+          // Styles based on Type
+          let baseColor = isMusic 
+            ? 'bg-gradient-to-br from-fuchsia-900/40 to-purple-900/40 border-fuchsia-500/30' // Music Base
+            : 'bg-card-gradient border-white/10'; // Trivia Base
+
+          if (isSelected) {
+            baseColor = isMusic 
+              ? 'bg-gradient-to-br from-fuchsia-600 to-purple-700 border-white text-white shadow-glow'
+              : 'bg-gradient-to-br from-indigo-600 to-blue-700 border-magic-cyan text-white shadow-glow-strong';
+          }
 
           return (
             <div
               key={cat.id}
               className={`
                 h-28 flex flex-col items-center justify-center rounded-2xl border-2 transition-all duration-200 relative overflow-hidden
-                ${isSelected 
-                  ? 'bg-gradient-to-br from-indigo-600 to-purple-700 border-magic-cyan text-white shadow-glow' 
-                  : 'bg-card-gradient border-white/10 text-gray-400 opacity-80'
-                }
+                ${baseColor}
+                ${!isSelected && 'text-gray-400 opacity-90'}
                 ${isFocused 
-                  ? 'tv-focus z-10 !opacity-100' 
+                  ? 'tv-focus z-10 !opacity-100 scale-105' 
                   : ''
                 }
               `}
@@ -134,8 +147,13 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
                 {cat.name}
               </span>
               
+              {/* Type Badge */}
+              {isMusic && (
+                 <div className="absolute top-2 left-2 text-[10px] font-bold bg-fuchsia-500 text-white px-1.5 rounded-sm shadow-sm">MUSIC</div>
+              )}
+
               {isSelected && (
-                <div className="absolute top-2 right-2 w-4 h-4 bg-magic-cyan rounded-full shadow-neon-blue border-2 border-white"></div>
+                <div className="absolute top-2 right-2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-white/50"></div>
               )}
             </div>
           );
