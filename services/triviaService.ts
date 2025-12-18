@@ -1,4 +1,13 @@
-import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion, ItunesTrack } from '../types';
+import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion } from '../types';
+import { 
+  ARTISTS_ROCK, 
+  ARTISTS_80S, 
+  ARTISTS_90S, 
+  ARTISTS_2000S, 
+  ARTISTS_2010S, 
+  ARTISTS_HIPHOP, 
+  MOVIE_THEMES 
+} from './musicData';
 
 const TRIVIA_API_URL = 'https://the-trivia-api.com/v2/questions';
 const ITUNES_API_URL = 'https://itunes.apple.com/search';
@@ -15,88 +24,81 @@ const shuffle = <T>(array: T[]): T[] => {
   return newArray;
 };
 
-// --- Helper: Clean Movie Names ---
-const cleanMovieTitle = (title: string): string => {
-  // Removes text inside brackets/parentheses like (Original Motion Picture Soundtrack), [OST], etc.
-  return title
-    .replace(/\s*[\(\[].*?(soundtrack|score|motion picture|ost|music from).*?[\)\]]/gi, '')
-    .replace(/\s*-\s*main title/gi, '')
-    .trim();
-};
+type MusicItem = string | { query: string; title: string };
 
-// --- Logic A: Music (iTunes) ---
-const fetchMusicQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
-  let url = '';
-  const isMovieCategory = cat.id === 'music_movies';
+// --- Smart Fetch Logic (Mixed Strings & Objects) ---
+const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
+  // Shuffle and pick a buffer (8) to ensure we get 5 valid ones
+  const shuffledList = shuffle(list);
+  const candidates = shuffledList.slice(0, 8);
   
-  // Quality Control: Force US store, limit 80 for top hits
-  const commonParams = '&media=music&entity=song&limit=80&country=US';
+  const questions: ProcessedQuestion[] = [];
+  const FIXED_MUSIC_VALUE = 400;
+  const isMovieCat = cat.id === 'music_movies';
 
-  if (isMovieCategory) {
-    // Specialized Movie Search
-    url = `${ITUNES_API_URL}?term=movie+soundtrack+highlights${commonParams}`;
-  } else {
-    // Standard Hits Search
-    let term = 'hits';
-    switch(cat.id) {
-      case 'music_2010s': term = '2010s+pop+essentials'; break;
-      case 'music_2000s': term = '2000s+pop+anthems'; break;
-      case 'music_90s': term = '90s+greatest+hits'; break;
-      case 'music_80s': term = '80s+pop+classics'; break;
-      case 'music_rock': term = 'rock+hall+of+fame+anthems'; break;
-      case 'music_hiphop': term = 'hip+hop+r&b+essentials'; break;
-      default: term = 'top+hits';
-    }
-    url = `${ITUNES_API_URL}?term=${term}${commonParams}`;
-  }
-  
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+  for (const item of candidates) {
+    if (questions.length >= 5) break;
+
+    let url = '';
+    const isObject = typeof item !== 'string';
     
-    let validTracks: any[] = [];
-
-    if (isMovieCategory) {
-      // --- Smart Filtering for Movies ---
-      validTracks = data.results.filter((t: any) => {
-        if (!t.previewUrl || t.kind !== 'song') return false;
-        
-        const genre = (t.primaryGenreName || '').toLowerCase();
-        const name = (t.trackName || '').toLowerCase();
-        
-        // Must be Soundtrack genre
-        const isSoundtrack = genre.includes('soundtrack') || genre.includes('score');
-        
-        // Boost relevance: Look for "Theme" or "Main Title" to avoid random pop songs in movies
-        const isTheme = name.includes('theme') || name.includes('main title') || name.includes('opening') || name.includes('suite');
-
-        return isSoundtrack && isTheme;
-      });
+    // CASE A: String (Artist) -> Fetch 5, Pick Random
+    // CASE B: Object (Specific) -> Fetch 1, Pick Top
+    if (!isObject) {
+      const term = encodeURIComponent(item as string);
+      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
     } else {
-      // Standard Filter
-      validTracks = data.results.filter((t: any) => t.previewUrl && t.kind === 'song');
+      const objItem = item as { query: string };
+      const term = encodeURIComponent(objItem.query);
+      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=1&country=US`;
     }
-    
-    if (validTracks.length < 5) return [];
 
-    const shuffled = shuffle(validTracks);
-    const selected = shuffled.slice(0, 5);
-    
-    // Music Questions are ALWAYS flat rate $400
-    const FIXED_MUSIC_VALUE = 400;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      const validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
+      if (validTracks.length === 0) continue;
 
-    return selected.map((track, idx) => {
-      // For Movies: Artist = Movie Name (Cleaned), Title = Track Name
-      // For Hits: Artist = Artist Name, Title = Track Name
-      const artistDisplay = isMovieCategory ? cleanMovieTitle(track.collectionName || track.artistName) : track.artistName;
-      const titleDisplay = track.trackName;
+      let track;
+      if (!isObject) {
+        // Random pick from artist results
+        track = validTracks[Math.floor(Math.random() * validTracks.length)];
+      } else {
+        // Exact match
+        track = validTracks[0];
+      }
 
-      return {
-        id: `music-${track.trackId}-${idx}`,
+      // Logic for Answer Display
+      let artistDisplay = '';
+      let titleDisplay = '';
+
+      if (isMovieCat) {
+        // For Movies: Main Display (Answer) is the Movie Name
+        if (isObject) {
+           artistDisplay = (item as { title: string }).title; // Movie Name
+           titleDisplay = track.artistName; // Composer (Hidden usually)
+        } else {
+           artistDisplay = track.collectionName || track.artistName;
+           titleDisplay = track.trackName;
+        }
+      } else {
+        // Standard Music
+        if (isObject) {
+           artistDisplay = track.artistName;
+           titleDisplay = (item as { title: string }).title; // Use custom title
+        } else {
+           artistDisplay = track.artistName;
+           titleDisplay = track.trackName;
+        }
+      }
+
+      questions.push({
+        id: `music-${track.trackId}-${questions.length}`,
         category: cat.name,
-        type: 'music', // Used for styling
+        type: 'music',
         difficulty: 'honor-system',
-        question: isMovieCategory ? "Guess the Movie!" : "Listen & Guess!",
+        question: isMovieCat ? "Guess the Movie!" : "Listen & Guess!",
         correct_answer: "Honor System",
         incorrect_answers: [],
         all_answers: [],
@@ -108,12 +110,14 @@ const fetchMusicQuestions = async (cat: TriviaCategory): Promise<ProcessedQuesti
           artist: artistDisplay,
           title: titleDisplay
         }
-      };
-    });
-  } catch (e) {
-    console.error("iTunes Fetch Error", e);
-    return [];
+      });
+
+    } catch (e) {
+      console.warn("Fetch failed for item:", item);
+    }
   }
+
+  return questions;
 };
 
 // --- Logic B: Standard (The Trivia API) ---
@@ -174,12 +178,25 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
   const columns: CategoryColumn[] = [];
 
   for (const cat of selectedCategories) {
-    await wait(600); // Gentle pacing
+    await wait(400); // Gentle pacing
     
     let questions: ProcessedQuestion[] = [];
 
     if (cat.id.startsWith('music_')) {
-      questions = await fetchMusicQuestions(cat);
+      let list: MusicItem[] = [];
+      
+      switch (cat.id) {
+        case 'music_rock': list = ARTISTS_ROCK; break;
+        case 'music_80s': list = ARTISTS_80S; break;
+        case 'music_90s': list = ARTISTS_90S; break;
+        case 'music_2000s': list = ARTISTS_2000S; break;
+        case 'music_2010s': list = ARTISTS_2010S; break;
+        case 'music_hiphop': list = ARTISTS_HIPHOP; break;
+        case 'music_movies': list = MOVIE_THEMES; break;
+        default: list = ARTISTS_2010S;
+      }
+      
+      questions = await fetchFromMixedList(list, cat);
     } else {
       questions = await fetchStandardQuestions(cat);
     }
