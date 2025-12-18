@@ -1,0 +1,5 @@
+{
+  "name": "Trivia",
+  "description": "A Jeopardy-style trivia game optimized for LG OLED TVs and Magic Remote navigation.",
+  "requestFramePermissions": []
+}
