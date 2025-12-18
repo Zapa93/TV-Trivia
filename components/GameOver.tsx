@@ -23,12 +23,12 @@ export const GameOver: React.FC<GameOverProps> = ({ players, onRestart }) => {
        </h1>
        
        <div className="glass-panel-active rounded-[3rem] p-16 text-center shadow-glow-gold mb-12 border-4 border-yellow-400/30 relative overflow-hidden bg-gradient-to-b from-white/10 to-transparent">
-          {/* Confetti/Sparkles could go here */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-400 blur-[80px] opacity-40"></div>
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-400 blur-[80px] opacity-40"></div>
 
           <p className="text-yellow-300 uppercase tracking-[0.4em] mb-6 font-bold text-sm">The Grand Winner</p>
-          <div className="text-9xl font-black text-white mb-6 drop-shadow-lg">{winner.name}</div>
+          <div className="text-8xl mb-4 animate-bounce">{winner.avatar}</div>
+          <div className="text-6xl font-black text-white mb-6 drop-shadow-lg">{winner.name}</div>
           <div className="inline-block bg-yellow-400/20 px-8 py-2 rounded-full border border-yellow-400/40">
             <div className="text-7xl font-mono text-yellow-300 font-bold drop-shadow-md">${winner.score}</div>
           </div>
@@ -37,7 +37,11 @@ export const GameOver: React.FC<GameOverProps> = ({ players, onRestart }) => {
        <div className="w-full max-w-4xl grid grid-cols-1 gap-4">
          {sortedPlayers.slice(1).map((p, idx) => (
            <div key={idx} className="flex justify-between items-center glass-panel px-8 py-4 rounded-2xl border-l-4 border-gray-400/50">
-              <span className="text-2xl text-gray-300 font-bold">#{idx + 2} {p.name}</span>
+              <div className="flex items-center space-x-4">
+                 <span className="text-2xl text-gray-500 font-bold">#{idx + 2}</span>
+                 <span className="text-3xl">{p.avatar}</span>
+                 <span className="text-2xl text-gray-300 font-bold">{p.name}</span>
+              </div>
               <span className="text-2xl font-mono text-white/80">${p.score}</span>
            </div>
          ))}

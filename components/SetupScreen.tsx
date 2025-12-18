@@ -5,6 +5,8 @@ interface SetupScreenProps {
   onNext: (playerCount: number) => void;
 }
 
+const ANIMAL_PREVIEWS = ['🦊', '🦁', '🐼', '🐨'];
+
 export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
   const [playerCount, setPlayerCount] = useState(1);
   const [isFocused, setIsFocused] = useState(true);
@@ -19,7 +21,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
     <div className="h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden">
       
       {/* Title */}
-      <div className="mb-20 text-center animate-float relative z-10">
+      <div className="mb-16 text-center animate-float relative z-10">
         <h1 className="text-[120px] font-black tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-r from-magic-cyan via-white to-magic-pink drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)]">
           TRIVIA
         </h1>
@@ -29,7 +31,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
       </div>
 
       <div className="glass-panel p-14 rounded-[2rem] border border-white/20 flex flex-col items-center space-y-12 w-full max-w-3xl backdrop-blur-2xl shadow-2xl z-10">
-        <h2 className="text-xl text-cyan-200 uppercase tracking-[0.2em] font-bold">Who is playing?</h2>
+        <h2 className="text-xl text-cyan-200 uppercase tracking-[0.2em] font-bold">Select Contenders</h2>
         
         <div className="flex items-center space-x-16">
           <div className={`
@@ -50,18 +52,20 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
         </div>
 
         {/* Player Indicators */}
-        <div className="flex space-x-6">
-          {[1, 2, 3, 4].map(n => (
+        <div className="flex justify-center space-x-6">
+          {[0, 1, 2, 3].map(idx => (
             <div 
-              key={n} 
+              key={idx} 
               className={`
-                h-5 w-5 rounded-full transition-all duration-500 border border-white/30
-                ${n <= playerCount 
-                  ? 'bg-gradient-to-br from-magic-cyan to-blue-600 shadow-neon-blue scale-125' 
-                  : 'bg-black/30'
+                h-16 w-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-500 border border-white/30
+                ${idx < playerCount 
+                  ? 'bg-gradient-to-br from-magic-cyan to-blue-600 shadow-neon-blue scale-110 opacity-100' 
+                  : 'bg-black/30 opacity-30 grayscale'
                 }
               `} 
-            />
+            >
+              {ANIMAL_PREVIEWS[idx]}
+            </div>
           ))}
         </div>
 

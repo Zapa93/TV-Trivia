@@ -8,6 +8,13 @@ import { GameBoard } from './components/GameBoard';
 import { QuestionScreen } from './components/QuestionScreen';
 import { GameOver } from './components/GameOver';
 
+const ANIMAL_PLAYERS = [
+  { name: 'Fox', avatar: '🦊' },
+  { name: 'Lion', avatar: '🦁' },
+  { name: 'Panda', avatar: '🐼' },
+  { name: 'Koala', avatar: '🐨' }
+];
+
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.SETUP);
   const [categories, setCategories] = useState<CategoryColumn[]>([]);
@@ -16,10 +23,11 @@ const App: React.FC = () => {
   const [activeQuestion, setActiveQuestion] = useState<ProcessedQuestion | null>(null);
 
   const handlePlayerSetup = (playerCount: number) => {
-    // Initialize Players
+    // Initialize Players with Animals
     const newPlayers: Player[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
-      name: `Player ${i + 1}`,
+      name: ANIMAL_PLAYERS[i].name,
+      avatar: ANIMAL_PLAYERS[i].avatar,
       score: 0
     }));
     setPlayers(newPlayers);
@@ -59,33 +67,36 @@ const App: React.FC = () => {
       return p;
     }));
 
-    // Mark Question as Answered
-    setCategories(prev => prev.map(col => {
-      if (col.title === activeQuestion.category) {
-         return {
-           ...col,
-           questions: col.questions.map(q => q.id === activeQuestion.id ? { ...q, isAnswered: true } : q)
-         };
-      }
-      return {
-          ...col,
-          questions: col.questions.map(q => q.id === activeQuestion.id ? { ...q, isAnswered: true } : q)
-      };
-    }));
+    // Mark Question as Answered in the state
+    setCategories(prevCategories => {
+      return prevCategories.map(col => {
+        // Find the column containing the question
+        if (col.questions.some(q => q.id === activeQuestion.id)) {
+           return {
+             ...col,
+             questions: col.questions.map(q => 
+               q.id === activeQuestion.id ? { ...q, isAnswered: true } : q
+             )
+           };
+        }
+        return col;
+      });
+    });
 
-    // Check End Game
-    const remainingQuestions = categories.flatMap(c => c.questions).filter(q => !q.isAnswered).length;
-    
     // Move turn to next player
     setCurrentTurn(prev => (prev + 1) % players.length);
     setActiveQuestion(null);
     setAppState(AppState.BOARD);
   };
 
-  // Check Game Over Condition whenever returning to Board
+  // Check Game Over Condition
   useEffect(() => {
     if (appState === AppState.BOARD && categories.length > 0) {
-      const allAnswered = categories.every(col => col.questions.every(q => q.isAnswered));
+      // Game ends ONLY when every single question in every column is answered
+      const allAnswered = categories.every(col => 
+        col.questions.every(q => q.isAnswered)
+      );
+      
       if (allAnswered) {
         setAppState(AppState.GAME_OVER);
       }
