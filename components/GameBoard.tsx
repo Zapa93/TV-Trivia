@@ -60,11 +60,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       >
         {categories.map((col, cIdx) => (
           <div key={cIdx} className="flex flex-col gap-4 h-full">
-            {/* Category Header Box */}
-            <div className="h-24 rounded-xl border-2 border-yellow-500 bg-blue-900/90 flex items-center justify-center p-2 shadow-lg relative overflow-hidden group">
+            {/* Category Header Box - Increased text size */}
+            <div className="h-28 rounded-xl border-2 border-yellow-500 bg-blue-900/90 flex items-center justify-center p-2 shadow-lg relative overflow-hidden group">
                {/* Inner glow */}
                <div className="absolute inset-0 bg-gradient-to-b from-blue-800/50 to-transparent"></div>
-               <h3 className="relative z-10 font-black text-xs lg:text-sm leading-tight uppercase text-yellow-400 text-center break-words w-full drop-shadow-md">
+               <h3 className="relative z-10 font-black text-sm lg:text-xl leading-tight uppercase text-yellow-400 text-center break-words w-full drop-shadow-md line-clamp-3">
                  {col.title}
                </h3>
             </div>

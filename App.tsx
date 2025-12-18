@@ -7,6 +7,7 @@ import { CategorySelectionScreen } from './components/CategorySelectionScreen';
 import { GameBoard } from './components/GameBoard';
 import { QuestionScreen } from './components/QuestionScreen';
 import { GameOver } from './components/GameOver';
+import { useAudio } from './hooks/useAudio';
 
 const ANIMAL_PLAYERS = [
   { name: 'Fox', avatar: '🦊' },
@@ -22,7 +23,22 @@ const App: React.FC = () => {
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   const [activeQuestion, setActiveQuestion] = useState<ProcessedQuestion | null>(null);
 
+  // Audio System
+  const { enableAudio, playMusic, stopMusic, playCorrect, playWrong } = useAudio();
+
+  // Manage Background Music based on State
+  useEffect(() => {
+    if (appState === AppState.SETUP || appState === AppState.CATEGORY_SELECT) {
+      playMusic();
+    } else {
+      stopMusic();
+    }
+  }, [appState, playMusic, stopMusic]);
+
   const handlePlayerSetup = (playerCount: number) => {
+    // Unlock Audio Context on first user interaction
+    enableAudio();
+
     // Initialize Players with Animals
     const newPlayers: Player[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
@@ -40,7 +56,9 @@ const App: React.FC = () => {
     // Fetch Data using specific categories
     const data = await fetchGameData(selectedCategories);
     if (data.length === 0) {
-       alert("Failed to load trivia. Check internet.");
+       // Ideally show a UI modal, but alert works for fallback
+       // Note: Native alerts can sometimes block TV focus loops, be careful
+       console.error("Failed to load trivia.");
        setAppState(AppState.CATEGORY_SELECT);
        return;
     }
@@ -92,7 +110,6 @@ const App: React.FC = () => {
   // Check Game Over Condition
   useEffect(() => {
     if (appState === AppState.BOARD && categories.length > 0) {
-      // Game ends ONLY when every single question in every column is answered
       const allAnswered = categories.every(col => 
         col.questions.every(q => q.isAnswered)
       );
@@ -131,6 +148,8 @@ const App: React.FC = () => {
         <QuestionScreen 
           question={activeQuestion}
           onAnswer={handleAnswer}
+          playCorrect={playCorrect}
+          playWrong={playWrong}
         />
       )}
       {appState === AppState.GAME_OVER && (

@@ -13,17 +13,28 @@ export enum Difficulty {
   HARD = 'hard'
 }
 
-export interface QuestionData {
+// The Trivia API Response Format
+export interface ApiQuestion {
+  id: string;
   category: string;
+  difficulty: string;
+  question: {
+    text: string;
+  };
+  correctAnswer: string;
+  incorrectAnswers: string[];
+  tags: string[];
+  type: string;
+}
+
+export interface ProcessedQuestion {
+  id: string;
+  category: string; // Display Name
   type: string;
   difficulty: string;
   question: string;
   correct_answer: string;
   incorrect_answers: string[];
-}
-
-export interface ProcessedQuestion extends QuestionData {
-  id: string;
   all_answers: string[]; // Shuffled answers
   isAnswered: boolean;
   pointValue: number;
@@ -42,7 +53,7 @@ export interface Player {
 }
 
 export interface TriviaCategory {
-  id: number;
+  id: string; // Changed from number to string for API tags
   name: string;
   emoji: string;
 }
@@ -53,7 +64,7 @@ export enum RemoteKey {
   LEFT = 'ArrowLeft',
   RIGHT = 'ArrowRight',
   ENTER = 'Enter',
-  BACK = 'Backspace', // Often mapped to Back on TV
+  BACK = 'Backspace',
   BACK_ALT = 'Escape',
   RED = 'Red',
   GREEN = 'Green',
@@ -61,7 +72,6 @@ export enum RemoteKey {
   BLUE = 'Blue'
 }
 
-// WebOS specific key codes often used if key names aren't mapped standardly
 export const TV_KEY_CODES: { [key: number]: RemoteKey } = {
   403: RemoteKey.RED,
   404: RemoteKey.GREEN,

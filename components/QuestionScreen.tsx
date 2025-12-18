@@ -6,9 +6,17 @@ interface QuestionScreenProps {
   question: ProcessedQuestion;
   onAnswer: (isCorrect: boolean) => void;
   onBack?: () => void;
+  playCorrect: () => void;
+  playWrong: () => void;
 }
 
-export const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnswer, onBack }) => {
+export const QuestionScreen: React.FC<QuestionScreenProps> = ({ 
+  question, 
+  onAnswer, 
+  onBack,
+  playCorrect,
+  playWrong 
+}) => {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [shakeIdx, setShakeIdx] = useState<number | null>(null);
@@ -23,7 +31,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnsw
 
     const isCorrect = idx === correctIndex;
 
-    if (!isCorrect) {
+    // Trigger Audio immediately
+    if (isCorrect) {
+      playCorrect();
+    } else {
+      playWrong();
       setShakeIdx(idx);
     }
     

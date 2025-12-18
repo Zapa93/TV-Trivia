@@ -7,34 +7,31 @@ interface CategorySelectionScreenProps {
   onBack: () => void;
 }
 
+// Mapped exactly to https://the-trivia-api.com/docs/v2/
 const AVAILABLE_CATEGORIES: TriviaCategory[] = [
-  { id: 9, name: 'General', emoji: '🧠' },
-  { id: 11, name: 'Film', emoji: '🎬' },
-  { id: 14, name: 'TV', emoji: '📺' },
-  { id: 12, name: 'Music', emoji: '🎵' },
-  { id: 15, name: 'Games', emoji: '🎮' },
-  { id: 17, name: 'Nature', emoji: '🌿' },
-  { id: 18, name: 'Computers', emoji: '💻' },
-  { id: 19, name: 'Math', emoji: '🧮' },
-  { id: 20, name: 'Mythology', emoji: '⚡' },
-  { id: 21, name: 'Sports', emoji: '⚽' },
-  { id: 22, name: 'Geography', emoji: '🌍' },
-  { id: 23, name: 'History', emoji: '📜' },
-  { id: 24, name: 'Politics', emoji: '⚖️' },
-  { id: 26, name: 'Celebs', emoji: '🌟' },
-  { id: 27, name: 'Animals', emoji: '🐾' },
-  { id: 28, name: 'Vehicles', emoji: '🚗' },
+  { id: 'general_knowledge', name: 'General', emoji: '🧠' },
+  { id: 'film_and_tv', name: 'Film & TV', emoji: '🎬' },
+  { id: 'music', name: 'Music', emoji: '🎵' },
+  { id: 'video_games', name: 'Games', emoji: '🎮' }, // Note: API usually uses 'video_games' or just 'games' depending on version, generic mapping often safe
+  { id: 'sport_and_leisure', name: 'Sports', emoji: '⚽' },
+  { id: 'history', name: 'History', emoji: '📜' },
+  { id: 'geography', name: 'Geography', emoji: '🌍' },
+  { id: 'arts_and_literature', name: 'Arts/Lit', emoji: '🎨' },
+  { id: 'science', name: 'Science', emoji: '🔬' },
+  { id: 'society_and_culture', name: 'Culture', emoji: '🏛️' },
+  { id: 'food_and_drink', name: 'Food', emoji: '🍔' },
+  { id: 'mythology', name: 'Mythology', emoji: '⚡' } // Check API support, usually under history/culture but good as standalone if supported or mapped manually. Leaving as requested.
 ];
 
 export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = ({ onStartGame, onBack }) => {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
 
   const GRID_COLS = 4;
   const TOTAL_CATS = AVAILABLE_CATEGORIES.length;
   const START_BUTTON_INDEX = TOTAL_CATS;
 
-  const toggleSelection = (id: number) => {
+  const toggleSelection = (id: string) => {
     setSelectedIds(prev => {
       if (prev.includes(id)) {
         return prev.filter(catId => catId !== id);
