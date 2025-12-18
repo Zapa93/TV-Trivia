@@ -1,9 +1,18 @@
-import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion, Difficulty } from '../types';
-import { shuffleArray } from '../utils/helpers';
+import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion } from '../types';
 
 const BASE_URL = 'https://the-trivia-api.com/v2/questions';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Local Fisher-Yates Shuffle Algorithm to ensure randomness
+const shuffle = <T>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
 
 export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promise<CategoryColumn[]> => {
   const columns: CategoryColumn[] = [];
@@ -70,6 +79,9 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
         }
 
         if (qRaw) {
+          // Construct the pool of answers
+          const answerPool = [qRaw.correctAnswer, ...qRaw.incorrectAnswers];
+
           // Transform to ProcessedQuestion
           const processed: ProcessedQuestion = {
             id: qRaw.id,
@@ -79,7 +91,7 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
             question: qRaw.question.text, // New API structure
             correct_answer: qRaw.correctAnswer,
             incorrect_answers: qRaw.incorrectAnswers,
-            all_answers: shuffleArray([qRaw.correctAnswer, ...qRaw.incorrectAnswers]),
+            all_answers: shuffle(answerPool), // Explicitly shuffle here
             isAnswered: false,
             pointValue: pointValues[i]
           };
