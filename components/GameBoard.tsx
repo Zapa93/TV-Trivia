@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { CategoryColumn, ProcessedQuestion, Player } from '../types';
 import { useTVNavigation } from '../hooks/useTVNavigation';
 
@@ -16,6 +16,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onQuestionSelect 
 }) => {
   const [focus, setFocus] = useState<[number, number]>([0, 0]);
+  const colCount = categories.length;
 
   useTVNavigation({
     onUp: () => setFocus(([c, r]) => [c, Math.max(0, r - 1)]),
@@ -34,27 +35,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const currentPlayer = players[currentPlayerIndex];
 
   return (
-    <div className="h-screen w-screen flex flex-col p-8 box-border">
+    <div className="h-screen w-screen flex flex-col p-8 box-border z-10">
       {/* Top Bar */}
       <div className="flex justify-between items-center mb-6 px-4">
-        <div className="flex items-center space-x-2">
-           <div className="w-3 h-3 bg-lg-red rounded-full shadow-neon-red"></div>
-           <div className="text-xl font-bold tracking-wider text-gray-300">OLED TRIVIA</div>
-        </div>
+        <h1 className="text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-300 drop-shadow-md">
+          TRIVIA
+        </h1>
         
-        <div className="glass-panel px-8 py-2 rounded-full flex items-center space-x-4">
-          <span className="text-sm uppercase tracking-widest text-gray-400">Current Turn</span>
-          <span className="text-2xl font-black text-lg-yellow drop-shadow-md">{currentPlayer.name}</span>
+        <div className="glass-panel px-8 py-2 rounded-full flex items-center space-x-4 bg-black/20 border-white/20">
+          <span className="text-xs uppercase tracking-widest text-purple-200">Current Turn</span>
+          <span className="text-2xl font-black text-magic-cyan drop-shadow-md">{currentPlayer.name}</span>
         </div>
       </div>
 
       {/* Main Grid */}
-      <div className="flex-1 grid grid-cols-6 gap-3 lg:gap-5 perspective-1000">
+      <div 
+        className="flex-1 grid gap-4 lg:gap-6 perspective-1000"
+        style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+      >
         {categories.map((col, cIdx) => (
-          <div key={cIdx} className="flex flex-col gap-3 lg:gap-4">
+          <div key={cIdx} className="flex flex-col gap-4">
             {/* Category Header */}
-            <div className="glass-panel bg-blue-900/20 h-24 flex items-center justify-center text-center rounded-xl p-2 border-b-4 border-blue-500/50">
-              <h3 className="font-bold text-xs lg:text-sm leading-tight uppercase tracking-wider text-blue-100 drop-shadow-sm">
+            <div className="glass-panel bg-gradient-to-b from-indigo-900/60 to-purple-900/60 h-20 flex items-center justify-center text-center rounded-2xl p-3 border-b-4 border-indigo-500/30 shadow-lg">
+              <h3 className="font-bold text-xs lg:text-sm leading-tight uppercase tracking-wider text-white drop-shadow-md">
                 {col.title}
               </h3>
             </div>
@@ -67,20 +70,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div 
                   key={q.id}
                   className={`
-                    flex-1 flex items-center justify-center rounded-xl border transition-all duration-200 relative
+                    flex-1 flex items-center justify-center rounded-2xl border-2 transition-all duration-300 relative overflow-hidden
                     ${q.isAnswered 
-                      ? 'bg-black/40 border-white/5 text-gray-800' 
-                      : 'glass-panel text-lg-yellow border-white/10'
+                      ? 'bg-black/20 border-white/5' 
+                      : 'bg-card-gradient border-white/10 text-magic-cyan'
                     }
-                    ${isFocused ? 'tv-focus' : 'hover:border-white/20'}
+                    ${isFocused ? 'tv-focus' : 'hover:border-white/30'}
                   `}
                 >
                   {q.isAnswered ? (
-                    <span className="text-3xl font-mono opacity-10 font-black">-</span>
+                    <span className="text-4xl opacity-10 grayscale">💎</span>
                   ) : (
-                    <span className={`font-mono font-bold text-3xl lg:text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${isFocused ? 'text-white' : ''}`}>
-                      ${q.pointValue}
-                    </span>
+                    <>
+                      {isFocused && <div className="absolute inset-0 bg-magic-cyan/10 animate-pulse-fast"></div>}
+                      <span className={`font-mono font-black text-3xl lg:text-5xl drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] ${isFocused ? 'text-white' : ''}`}>
+                        ${q.pointValue}
+                      </span>
+                    </>
                   )}
                 </div>
               );
@@ -90,22 +96,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Scoreboard */}
-      <div className="mt-6 flex justify-center space-x-6">
+      <div className="mt-8 flex justify-center space-x-8">
         {players.map((p, idx) => (
           <div 
             key={p.id} 
             className={`
-               glass-panel px-8 py-3 rounded-2xl border-t transition-all duration-300
-               flex flex-col items-center min-w-[140px]
+               glass-panel px-10 py-4 rounded-3xl border-t transition-all duration-300
+               flex flex-col items-center min-w-[160px]
                ${idx === currentPlayerIndex 
-                 ? 'bg-white/10 border-lg-yellow/50 shadow-glow-gold transform -translate-y-2' 
-                 : 'border-white/5 opacity-70'}
+                 ? 'bg-gradient-to-b from-white/10 to-transparent border-magic-cyan shadow-glow transform -translate-y-2' 
+                 : 'border-white/5 bg-black/20 opacity-70'}
             `}
           >
-            <span className={`text-xs font-bold uppercase tracking-widest mb-1 ${idx === currentPlayerIndex ? 'text-lg-yellow' : 'text-gray-400'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-1 ${idx === currentPlayerIndex ? 'text-magic-cyan' : 'text-gray-400'}`}>
               {p.name}
             </span>
-            <span className={`text-3xl font-mono font-black ${p.score < 0 ? 'text-lg-red' : 'text-white'}`}>
+            <span className={`text-4xl font-mono font-black ${p.score < 0 ? 'text-lg-red' : 'text-white'} drop-shadow-md`}>
               ${p.score}
             </span>
           </div>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AppState, CategoryColumn, Player, ProcessedQuestion } from './types';
+import { AppState, CategoryColumn, Player, ProcessedQuestion, TriviaCategory } from './types';
 import { fetchGameData } from './services/triviaService';
 import { LoadingScreen } from './components/LoadingScreen';
 import { SetupScreen } from './components/SetupScreen';
+import { CategorySelectionScreen } from './components/CategorySelectionScreen';
 import { GameBoard } from './components/GameBoard';
 import { QuestionScreen } from './components/QuestionScreen';
 import { GameOver } from './components/GameOver';
@@ -14,9 +15,7 @@ const App: React.FC = () => {
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   const [activeQuestion, setActiveQuestion] = useState<ProcessedQuestion | null>(null);
 
-  const handleStartGame = async (playerCount: number) => {
-    setAppState(AppState.LOADING);
-    
+  const handlePlayerSetup = (playerCount: number) => {
     // Initialize Players
     const newPlayers: Player[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
@@ -24,13 +23,17 @@ const App: React.FC = () => {
       score: 0
     }));
     setPlayers(newPlayers);
+    setAppState(AppState.CATEGORY_SELECT);
+  };
 
-    // Fetch Data
-    const data = await fetchGameData();
+  const handleCategorySelection = async (selectedCategories: TriviaCategory[]) => {
+    setAppState(AppState.LOADING);
+    
+    // Fetch Data using specific categories
+    const data = await fetchGameData(selectedCategories);
     if (data.length === 0) {
-       // Ideally handle error UI here, but for now reset
        alert("Failed to load trivia. Check internet.");
-       setAppState(AppState.SETUP);
+       setAppState(AppState.CATEGORY_SELECT);
        return;
     }
     
@@ -72,8 +75,6 @@ const App: React.FC = () => {
 
     // Check End Game
     const remainingQuestions = categories.flatMap(c => c.questions).filter(q => !q.isAnswered).length;
-    // We substract 1 because the current question is technically still 'active' in state before this update fully propagates
-    // But logically we just move on.
     
     // Move turn to next player
     setCurrentTurn(prev => (prev + 1) % players.length);
@@ -99,7 +100,13 @@ const App: React.FC = () => {
 
   return (
     <div className="font-sans antialiased text-white min-h-screen relative z-10">
-      {appState === AppState.SETUP && <SetupScreen onStartGame={handleStartGame} />}
+      {appState === AppState.SETUP && <SetupScreen onNext={handlePlayerSetup} />}
+      {appState === AppState.CATEGORY_SELECT && (
+        <CategorySelectionScreen 
+          onStartGame={handleCategorySelection} 
+          onBack={() => setAppState(AppState.SETUP)}
+        />
+      )}
       {appState === AppState.LOADING && <LoadingScreen />}
       {appState === AppState.BOARD && (
         <GameBoard 

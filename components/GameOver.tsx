@@ -17,31 +17,34 @@ export const GameOver: React.FC<GameOverProps> = ({ players, onRestart }) => {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center animate-zoom-in">
-       <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-lg-yellow to-yellow-600 mb-8 animate-float drop-shadow-sm">
-         GAME OVER
+    <div className="h-screen w-screen flex flex-col items-center justify-center animate-zoom-in relative z-20">
+       <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-8 animate-float drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+         CHAMPION
        </h1>
        
-       <div className="glass-panel-active rounded-3xl p-16 text-center shadow-glow-gold mb-12 border-2 border-lg-yellow/50 relative overflow-hidden">
-          {/* Shine effect */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+       <div className="glass-panel-active rounded-[3rem] p-16 text-center shadow-glow-gold mb-12 border-4 border-yellow-400/30 relative overflow-hidden bg-gradient-to-b from-white/10 to-transparent">
+          {/* Confetti/Sparkles could go here */}
+          <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-400 blur-[80px] opacity-40"></div>
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-400 blur-[80px] opacity-40"></div>
 
-          <p className="text-lg-yellow uppercase tracking-[0.3em] mb-6 font-bold">Champion</p>
-          <div className="text-8xl font-black text-white mb-4 drop-shadow-md">{winner.name}</div>
-          <div className="text-6xl font-mono text-lg-yellow font-bold">${winner.score}</div>
+          <p className="text-yellow-300 uppercase tracking-[0.4em] mb-6 font-bold text-sm">The Grand Winner</p>
+          <div className="text-9xl font-black text-white mb-6 drop-shadow-lg">{winner.name}</div>
+          <div className="inline-block bg-yellow-400/20 px-8 py-2 rounded-full border border-yellow-400/40">
+            <div className="text-7xl font-mono text-yellow-300 font-bold drop-shadow-md">${winner.score}</div>
+          </div>
        </div>
 
-       <div className="w-full max-w-3xl space-y-4">
+       <div className="w-full max-w-4xl grid grid-cols-1 gap-4">
          {sortedPlayers.slice(1).map((p, idx) => (
-           <div key={idx} className="flex justify-between items-center glass-panel p-6 rounded-xl border-l-4 border-gray-500">
+           <div key={idx} className="flex justify-between items-center glass-panel px-8 py-4 rounded-2xl border-l-4 border-gray-400/50">
               <span className="text-2xl text-gray-300 font-bold">#{idx + 2} {p.name}</span>
-              <span className="text-2xl font-mono text-white">${p.score}</span>
+              <span className="text-2xl font-mono text-white/80">${p.score}</span>
            </div>
          ))}
        </div>
 
-       <div className="mt-16 bg-white/10 px-8 py-3 rounded-full animate-pulse border border-white/20">
-         <span className="text-gray-300 uppercase tracking-widest font-semibold text-sm">Press <span className="text-white font-bold">OK</span> to Play Again</span>
+       <div className="mt-16 bg-white/10 px-10 py-4 rounded-full animate-pulse border border-white/20 shadow-glow">
+         <span className="text-white uppercase tracking-widest font-bold text-base">Press <span className="text-magic-pink">OK</span> to Play Again</span>
        </div>
     </div>
   );

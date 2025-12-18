@@ -1,5 +1,6 @@
 export enum AppState {
   SETUP,
+  CATEGORY_SELECT,
   LOADING,
   BOARD,
   QUESTION,
@@ -37,6 +38,12 @@ export interface Player {
   id: number;
   name: string;
   score: number;
+}
+
+export interface TriviaCategory {
+  id: number;
+  name: string;
+  emoji: string;
 }
 
 export enum RemoteKey {

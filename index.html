@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OLED Trivia Night</title>
+    <title>Trivia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script>
@@ -11,11 +11,12 @@
         theme: {
           extend: {
             colors: {
-              'oled-black': '#000000',
-              'oled-blue-dark': '#050a14',
-              'oled-blue-mid': '#0f172a',
-              'glass-dark': 'rgba(0, 0, 0, 0.6)',
-              'glass-light': 'rgba(255, 255, 255, 0.05)',
+              'magic-bg': '#2e1065', // dark purple base
+              'magic-purple': '#7c3aed',
+              'magic-pink': '#d946ef',
+              'magic-cyan': '#06b6d4',
+              'glass-panel': 'rgba(255, 255, 255, 0.1)',
+              'glass-border': 'rgba(255, 255, 255, 0.2)',
               'lg-red': '#ff4444',
               'lg-green': '#00e676',
               'lg-yellow': '#ffea00',
@@ -24,24 +25,30 @@
             fontFamily: {
               sans: ['Montserrat', 'sans-serif'],
             },
+            backgroundImage: {
+              'magic-gradient': 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #701a75 100%)',
+              'card-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+            },
             boxShadow: {
-              'glow': '0 0 20px rgba(255, 255, 255, 0.1)',
-              'glow-gold': '0 0 30px rgba(255, 234, 0, 0.4)',
-              'neon-red': '0 0 15px rgba(255, 68, 68, 0.6)',
-              'neon-green': '0 0 15px rgba(0, 230, 118, 0.6)',
-              'neon-yellow': '0 0 15px rgba(255, 234, 0, 0.6)',
-              'neon-blue': '0 0 15px rgba(41, 121, 255, 0.6)',
+              'glow': '0 0 20px rgba(217, 70, 239, 0.3)',
+              'glow-strong': '0 0 30px rgba(6, 182, 212, 0.5)',
+              'neon-red': '0 0 20px rgba(255, 68, 68, 0.6)',
+              'neon-green': '0 0 20px rgba(0, 230, 118, 0.6)',
+              'neon-yellow': '0 0 20px rgba(255, 234, 0, 0.6)',
+              'neon-blue': '0 0 20px rgba(41, 121, 255, 0.6)',
             },
             animation: {
-              'float': 'float 20s ease-in-out infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'float-delayed': 'float 6s ease-in-out 3s infinite',
               'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-              'zoom-in': 'zoomIn 0.3s ease-out forwards',
-              'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'zoom-in': 'zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'shimmer': 'shimmer 2s linear infinite',
             },
             keyframes: {
               float: {
-                '0%, 100%': { transform: 'translateY(0) scale(1)' },
-                '50%': { transform: 'translateY(-20px) scale(1.1)' },
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-15px)' },
               },
               shake: {
                 '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
@@ -50,8 +57,12 @@
                 '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
               },
               zoomIn: {
-                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '0%': { opacity: '0', transform: 'scale(0.8)' },
                 '100%': { opacity: '1', transform: 'scale(1)' }
+              },
+              shimmer: {
+                '0%': { backgroundPosition: '-200% 0' },
+                '100%': { backgroundPosition: '200% 0' }
               }
             }
           }
@@ -60,64 +71,42 @@
     </script>
     <style>
       body {
-        background-color: #000000;
+        background: #1e1b4b; /* Fallback */
         color: #ffffff;
         overflow: hidden;
         user-select: none;
         margin: 0;
       }
       
-      /* Glassmorphism utilities */
-      .glass-panel {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      .glass-panel-active {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
-
-      /* Animated Background Mesh */
-      .bg-gradient-mesh {
-        background: radial-gradient(circle at 50% 0%, #1e293b 0%, #050a14 60%, #000000 100%);
+      .bg-main {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, #0f172a 0%, #312e81 40%, #4c1d95 80%, #be185d 100%);
         z-index: -2;
       }
-
-      .floating-particles {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        z-index: -1;
-        pointer-events: none;
+      
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
       }
       
-      .particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        animation: float 15s infinite ease-in-out;
-      }
-
       .tv-focus {
         transform: scale(1.05);
-        box-shadow: 0 0 30px rgba(255, 234, 0, 0.5);
-        border-color: #ffea00 !important;
-        background-color: rgba(30, 58, 138, 0.8) !important;
+        border-color: #06b6d4 !important; /* Cyan */
+        background: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 0 25px #06b6d4, inset 0 0 10px rgba(6, 182, 212, 0.5) !important;
         z-index: 50;
+      }
+      
+      .floating-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.6;
+        animation: float 10s infinite ease-in-out;
       }
     </style>
   <script type="importmap">
@@ -132,14 +121,10 @@
 </head>
   <body>
     <div id="root"></div>
-    <div class="bg-gradient-mesh"></div>
-    <div class="floating-particles">
-      <!-- Simple CSS Particles -->
-      <div class="particle" style="top: 20%; left: 20%; animation-delay: 0s;"></div>
-      <div class="particle" style="top: 60%; left: 40%; animation-delay: 2s; width: 6px; height: 6px;"></div>
-      <div class="particle" style="top: 30%; left: 80%; animation-delay: 4s;"></div>
-      <div class="particle" style="top: 80%; left: 10%; animation-delay: 1s; width: 8px; height: 8px;"></div>
-      <div class="particle" style="top: 70%; left: 70%; animation-delay: 3s;"></div>
-    </div>
+    <div class="bg-main"></div>
+    <!-- Ambient Orbs -->
+    <div class="floating-orb bg-purple-600 w-96 h-96 top-0 left-0 animate-float"></div>
+    <div class="floating-orb bg-pink-600 w-80 h-80 bottom-0 right-0 animate-float-delayed"></div>
+    <div class="floating-orb bg-blue-600 w-64 h-64 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
   </body>
 </html>

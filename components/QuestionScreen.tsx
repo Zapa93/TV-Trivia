@@ -48,28 +48,31 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnsw
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col animate-zoom-in backdrop-blur-3xl bg-black/80">
+    <div className="fixed inset-0 z-50 flex flex-col animate-zoom-in backdrop-blur-xl bg-indigo-950/80">
       
-      {/* Correct Answer Flash Overlay */}
+      {/* Background ambient effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-purple-900/50 pointer-events-none"></div>
+
+      {/* Correct Answer Flash */}
       {showResult && selectedIdx === correctIndex && (
-         <div className="absolute inset-0 bg-green-500/20 z-0 animate-pulse-fast pointer-events-none"></div>
+         <div className="absolute inset-0 bg-green-500/20 z-0 animate-pulse-fast pointer-events-none mix-blend-screen"></div>
       )}
 
       {/* Header */}
-      <div className="p-8 flex justify-between items-end border-b border-white/10 bg-black/40 z-10">
+      <div className="p-8 flex justify-between items-end border-b border-white/10 bg-black/20 z-10 shadow-lg">
         <div className="flex flex-col">
-          <span className="text-lg-yellow font-bold tracking-[0.2em] uppercase mb-1 shadow-black drop-shadow-md">{question.category}</span>
-          <span className="text-gray-400 text-sm uppercase tracking-wide">{question.difficulty}</span>
+          <span className="text-magic-cyan font-bold tracking-[0.2em] uppercase mb-1 drop-shadow-md text-xl">{question.category}</span>
+          <span className="text-purple-200 text-sm uppercase tracking-wide font-semibold">{question.difficulty}</span>
         </div>
-        <div className="text-6xl font-mono font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+        <div className="text-7xl font-mono font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
           ${question.pointValue}
         </div>
       </div>
 
       {/* Question Body */}
       <div className="flex-1 flex items-center justify-center p-12 text-center z-10">
-        <div className="glass-panel p-10 rounded-3xl max-w-5xl bg-black/20 border-white/5">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white drop-shadow-xl">
+        <div className="glass-panel p-12 rounded-[2rem] max-w-6xl bg-gradient-to-br from-white/10 to-transparent border-white/20 shadow-2xl">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-md">
             {question.question}
           </h2>
         </div>
@@ -77,52 +80,57 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnsw
 
       {/* Answers Grid */}
       <div className="p-8 pb-12 z-10">
-        <div className="grid grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 gap-8 max-w-7xl mx-auto">
           {question.all_answers.map((ans, idx) => {
             const config = colors[idx];
             
-            // Determine styles based on state
-            let containerClass = "glass-panel border-l-8 text-gray-200 opacity-90";
+            // Determine styles
+            let containerClass = "glass-panel border-l-8 text-white/90";
             let borderColor = config.border;
+            let scaleClass = "";
 
             if (showResult) {
                if (idx === correctIndex) {
                  // Correct
-                 containerClass = "bg-green-600/90 text-white border-l-8 border-white scale-105 shadow-[0_0_50px_rgba(0,230,118,0.6)]";
+                 containerClass = "bg-gradient-to-r from-green-600 to-green-500 text-white border-l-8 border-white shadow-neon-green";
                  borderColor = "border-white";
+                 scaleClass = "scale-105 z-20";
                } else if (idx === selectedIdx) {
                  // Wrong
-                 containerClass = "bg-red-600/90 text-white border-l-8 border-white opacity-80";
+                 containerClass = "bg-red-600/80 text-white border-l-8 border-white opacity-80";
                  borderColor = "border-white";
                } else {
                  // Inactive
-                 containerClass = "bg-black/60 opacity-20 border-gray-800 text-gray-600";
-                 borderColor = "border-gray-800";
+                 containerClass = "bg-black/40 opacity-30 border-gray-700 text-gray-500";
+                 borderColor = "border-gray-700";
                }
             } else if (selectedIdx === idx) {
-               // Pressed state
+               // Pressed
                containerClass = "bg-white/20 border-white text-white";
+            } else {
+                // Default
+                containerClass += " hover:bg-white/10 transition-colors";
             }
 
-            // Animation class
             const animClass = (shakeIdx === idx) ? 'animate-shake' : '';
 
             return (
               <div 
                 key={idx}
                 className={`
-                  relative h-28 md:h-36 rounded-r-2xl flex items-center px-8 transition-all duration-300
-                  ${containerClass} ${borderColor} ${animClass}
+                  relative h-32 md:h-40 rounded-r-3xl flex items-center px-10 transition-all duration-300
+                  ${containerClass} ${borderColor} ${animClass} ${scaleClass}
                 `}
               >
-                {/* Color Button Indicator */}
+                {/* Gem Indicator */}
                 <div className={`
-                    absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border-4 border-black/50 shadow-lg flex items-center justify-center
+                    absolute -left-7 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border-4 border-white/20 shadow-xl flex items-center justify-center
                     ${config.bg} ${config.shadow} z-20
                 `}>
+                  <div className="w-4 h-4 bg-white/50 rounded-full blur-sm"></div>
                 </div>
 
-                <span className="text-xl md:text-3xl font-semibold ml-6 drop-shadow-sm leading-snug">{ans}</span>
+                <span className="text-2xl md:text-3xl font-bold ml-6 drop-shadow-md leading-snug">{ans}</span>
               </div>
             );
           })}
@@ -130,7 +138,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnsw
         
         {/* Instructions */}
         {!showResult && (
-           <div className="flex justify-center mt-10 space-x-12 text-gray-400 text-sm uppercase tracking-[0.2em] font-bold">
+           <div className="flex justify-center mt-12 space-x-12 text-white/60 text-sm uppercase tracking-[0.2em] font-bold">
               <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-red shadow-neon-red mr-3"></span> Select</div>
               <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-green shadow-neon-green mr-3"></span> Select</div>
               <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-yellow shadow-neon-yellow mr-3"></span> Select</div>

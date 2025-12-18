@@ -1,13 +1,7 @@
-import { CategoryColumn, ProcessedQuestion, Difficulty } from '../types';
+import { CategoryColumn, ProcessedQuestion, Difficulty, TriviaCategory } from '../types';
 import { decodeHtml, shuffleArray } from '../utils/helpers';
 
 const BASE_URL = 'https://opentdb.com/api.php';
-const CATEGORY_LIST_URL = 'https://opentdb.com/api_category.php';
-
-interface ApiCategory {
-  id: number;
-  name: string;
-}
 
 // Map point values to difficulties conceptually
 const getDifficultyForIndex = (index: number): Difficulty => {
@@ -16,33 +10,20 @@ const getDifficultyForIndex = (index: number): Difficulty => {
   return Difficulty.HARD; // $1000
 };
 
-export const fetchGameData = async (): Promise<CategoryColumn[]> => {
+export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promise<CategoryColumn[]> => {
   try {
-    // 1. Fetch all categories
-    const catRes = await fetch(CATEGORY_LIST_URL);
-    const catData = await catRes.json();
-    const allCategories: ApiCategory[] = catData.trivia_categories;
-
-    // 2. Shuffle and pick 6 distinct categories
-    const selectedCategories = shuffleArray(allCategories).slice(0, 6);
-
     const columns: CategoryColumn[] = [];
 
-    // 3. For each category, fetch questions
-    // Note: To avoid rate limits and ensuring distribution, we might need multiple calls or one big call.
-    // Strategy: Fetch 12 questions of mixed difficulty per category, sort them, and pick 5.
-    
-    // We will do these sequentially to be nice to the API (OpenTDB can 429 if spammed)
+    // Fetch questions for each selected category sequentially
     for (const cat of selectedCategories) {
-      // Fetch 15 questions to ensure we have enough distribution (OpenTDB doesn't guarantee exact difficulty counts in mixed mode perfectly sometimes)
+      // Fetch 15 questions to ensure we have enough distribution
       const url = `${BASE_URL}?amount=15&category=${cat.id}&type=multiple`;
       
       const res = await fetch(url);
       
-      // Handle Rate Limiting (Wait 5 seconds if hit, simple retry logic)
+      // Handle Rate Limiting (Wait 5 seconds if hit)
       if (res.status === 429) {
          await new Promise(resolve => setTimeout(resolve, 5000));
-         // Retry once
          const retryRes = await fetch(url);
          if (!retryRes.ok) throw new Error('API Retry failed');
       }
@@ -51,7 +32,7 @@ export const fetchGameData = async (): Promise<CategoryColumn[]> => {
       
       if (data.response_code !== 0) {
         console.warn(`Skipping category ${cat.name} due to API error code ${data.response_code}`);
-        continue; // Skip bad category
+        continue;
       }
       
       let pool = data.results as any[];
@@ -64,9 +45,6 @@ export const fetchGameData = async (): Promise<CategoryColumn[]> => {
       const selectedQuestions: ProcessedQuestion[] = [];
       const values = [200, 400, 600, 800, 1000];
 
-      // We need 5 questions. We try to fill slots 0-1 with easy, 2-3 with medium, 4 with hard.
-      // Fallback: If not enough specific difficulty, take from others.
-      
       for (let i = 0; i < 5; i++) {
         let qRaw;
         const targetDiff = getDifficultyForIndex(i);
@@ -79,7 +57,7 @@ export const fetchGameData = async (): Promise<CategoryColumn[]> => {
           qRaw = medium.pop() || easy.pop() || hard.pop();
         }
 
-        if (!qRaw) break; // Should not happen given we fetched 15
+        if (!qRaw) break;
 
         const processed: ProcessedQuestion = {
           category: decodeHtml(qRaw.category),
@@ -100,16 +78,16 @@ export const fetchGameData = async (): Promise<CategoryColumn[]> => {
       // Only add column if we successfully got 5 questions
       if (selectedQuestions.length === 5) {
         columns.push({
-          title: decodeHtml(cat.name).split(':').pop()?.trim() || cat.name, // Remove "Entertainment: " prefix
+          title: cat.name, // Use our local clean name
           questions: selectedQuestions
         });
       }
       
-      // Delay slightly between categories
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Delay slightly between categories to be nice to API
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    return columns.slice(0, 6); // Ensure max 6
+    return columns;
 
   } catch (error) {
     console.error("Failed to fetch trivia data", error);
