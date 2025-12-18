@@ -29,20 +29,27 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   // --- AUDIO MODE LOGIC ---
   useEffect(() => {
     if (question.mediaType === 'audio' && question.audioUrl) {
-      audioRef.current = new Audio(question.audioUrl);
-      audioRef.current.volume = 0.8;
-      audioRef.current.play().catch(e => console.warn("Preview play blocked", e));
+      const audio = new Audio(question.audioUrl);
+      audio.volume = 0.8;
+      audioRef.current = audio;
+
+      // Safety: Ensure timer zeros out if track ends early
+      audio.onended = () => {
+        setTimeLeft(0);
+      };
+
+      audio.play().catch(e => console.warn("Preview play blocked", e));
       
       // Start Timer
       const interval = setInterval(() => {
         setTimeLeft((prev) => {
-          if (prev <= 1) {
+          const nextTime = prev - 1;
+          if (nextTime <= 0) {
             clearInterval(interval);
-            // Auto Stop Audio at 0
             if (audioRef.current) audioRef.current.pause();
             return 0;
           }
-          return prev - 1;
+          return nextTime;
         });
       }, 1000);
 
@@ -188,16 +195,20 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
            ) : (
              <div className="text-center animate-zoom-in">
                <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8 min-w-[500px]">
-                  {/* Movie Display Logic */}
+                  {/* Movie Label */}
                   {question.category === 'Movie Themes' && (
                     <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Movie / Show</span>
                   )}
                   
-                  <h2 className="text-3xl font-bold text-magic-cyan mb-2">{question.answerReveal?.artist}</h2>
+                  {/* Primary: Song Title (or Track Name for Movies) */}
+                  <h2 className="text-4xl font-black text-magic-cyan mb-2 drop-shadow-md">
+                    {question.answerReveal?.title}
+                  </h2>
                   
-                  {question.category !== 'Movie Themes' && (
-                     <h3 className="text-xl text-white">{question.answerReveal?.title}</h3>
-                  )}
+                  {/* Secondary: Artist (or Movie Name for Movies) */}
+                  <h3 className="text-2xl font-semibold text-white/80">
+                    {question.answerReveal?.artist}
+                  </h3>
                </div>
                
                <p className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">Rate Your Answer</p>

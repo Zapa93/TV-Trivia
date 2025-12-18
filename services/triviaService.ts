@@ -30,7 +30,7 @@ type MusicItem = string | { query: string; title: string };
 const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
   // Shuffle and pick a buffer (8) to ensure we get 5 valid ones
   const shuffledList = shuffle(list);
-  const candidates = shuffledList.slice(0, 8);
+  const candidates = shuffledList.slice(0, 12); // Increased buffer slightly
   
   const questions: ProcessedQuestion[] = [];
   const FIXED_MUSIC_VALUE = 400;
@@ -42,11 +42,11 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
     let url = '';
     const isObject = typeof item !== 'string';
     
-    // CASE A: String (Artist) -> Fetch 5, Pick Random
-    // CASE B: Object (Specific) -> Fetch 1, Pick Top
+    // CASE A: String (Artist) -> Fetch 25 to allow for strict filtering
+    // CASE B: Object (Specific) -> Fetch 1 (Exact Query)
     if (!isObject) {
       const term = encodeURIComponent(item as string);
-      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
+      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=25&country=US`;
     } else {
       const objItem = item as { query: string };
       const term = encodeURIComponent(objItem.query);
@@ -57,12 +57,22 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       const response = await fetch(url);
       const data = await response.json();
       
-      const validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
+      let validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
+      
+      // Strict Validation for Artist Mode
+      if (!isObject) {
+          const searchArtist = (item as string).toLowerCase();
+          // Filter out results where the artist name doesn't include the search term
+          validTracks = validTracks.filter((t: any) => 
+              (t.artistName || "").toLowerCase().includes(searchArtist)
+          );
+      }
+
       if (validTracks.length === 0) continue;
 
       let track;
       if (!isObject) {
-        // Random pick from artist results
+        // Random pick from the strictly filtered results
         track = validTracks[Math.floor(Math.random() * validTracks.length)];
       } else {
         // Exact match
@@ -107,8 +117,8 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         mediaType: 'audio',
         audioUrl: track.previewUrl,
         answerReveal: {
-          artist: artistDisplay,
-          title: titleDisplay
+          artist: artistDisplay, // For Movies: Movie Name. For Music: Artist.
+          title: titleDisplay    // For Movies: Track Name. For Music: Song Title.
         }
       });
 
