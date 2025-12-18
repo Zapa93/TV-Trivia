@@ -1,11 +1,11 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
+import { AppState } from '../types';
 
 export const useAudio = () => {
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const correctRef = useRef<HTMLAudioElement | null>(null);
   const wrongRef = useRef<HTMLAudioElement | null>(null);
   
-  // Browser Autoplay Policy: AudioContext is suspended until user interaction
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [shouldPlayMusic, setShouldPlayMusic] = useState(false);
 
@@ -32,15 +32,14 @@ export const useAudio = () => {
     };
   }, []);
 
-  // Effect to handle actual playback based on enabled state and logic state
+  // Effect to handle playback based on policies and state
   useEffect(() => {
     if (musicRef.current) {
       if (audioEnabled && shouldPlayMusic) {
-        // Try/Catch for any lingering autoplay blocks
         const playPromise = musicRef.current.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
-                console.warn("Audio Playback prevented:", error);
+                console.warn("BG Music Autoplay blocked:", error);
             });
         }
       } else {
@@ -49,24 +48,21 @@ export const useAudio = () => {
     }
   }, [audioEnabled, shouldPlayMusic]);
 
-  // Called on first user interaction (e.g., clicking Next in Setup)
   const enableAudio = useCallback(() => {
     if (!audioEnabled) {
       setAudioEnabled(true);
-      
-      // Optional: Play a silent sound or resume context if using Web Audio API
-      // For simple HTML5 Audio, flipping the state is usually enough if triggered by event
     }
   }, [audioEnabled]);
 
-  const playMusic = useCallback(() => {
-    setShouldPlayMusic(true);
-  }, []);
-
-  const stopMusic = useCallback(() => {
-    setShouldPlayMusic(false);
-    if (musicRef.current) {
-        musicRef.current.currentTime = 0;
+  // Updated to receive AppState to enforce rules
+  const manageMusicState = useCallback((state: AppState) => {
+    if (state === AppState.SETUP || state === AppState.CATEGORY_SELECT) {
+      setShouldPlayMusic(true);
+    } else {
+      setShouldPlayMusic(false); // Silence for Board/Question/Loading/GameOver
+      if (musicRef.current) {
+          musicRef.current.currentTime = 0; // Reset to start
+      }
     }
   }, []);
 
@@ -86,8 +82,7 @@ export const useAudio = () => {
 
   return { 
     enableAudio, 
-    playMusic, 
-    stopMusic, 
+    manageMusicState, 
     playCorrect, 
     playWrong 
   };

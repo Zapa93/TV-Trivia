@@ -24,22 +24,17 @@ const App: React.FC = () => {
   const [activeQuestion, setActiveQuestion] = useState<ProcessedQuestion | null>(null);
 
   // Audio System
-  const { enableAudio, playMusic, stopMusic, playCorrect, playWrong } = useAudio();
+  const { enableAudio, manageMusicState, playCorrect, playWrong } = useAudio();
 
-  // Manage Background Music based on State
+  // Manage Background Music based on AppState
   useEffect(() => {
-    if (appState === AppState.SETUP || appState === AppState.CATEGORY_SELECT) {
-      playMusic();
-    } else {
-      stopMusic();
-    }
-  }, [appState, playMusic, stopMusic]);
+    manageMusicState(appState);
+  }, [appState, manageMusicState]);
 
   const handlePlayerSetup = (playerCount: number) => {
-    // Unlock Audio Context on first user interaction
-    enableAudio();
+    enableAudio(); // Unlock Context
 
-    // Initialize Players with Animals
+    // Initialize Players
     const newPlayers: Player[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
       name: ANIMAL_PLAYERS[i].name,
@@ -53,11 +48,8 @@ const App: React.FC = () => {
   const handleCategorySelection = async (selectedCategories: TriviaCategory[]) => {
     setAppState(AppState.LOADING);
     
-    // Fetch Data using specific categories
     const data = await fetchGameData(selectedCategories);
     if (data.length === 0) {
-       // Ideally show a UI modal, but alert works for fallback
-       // Note: Native alerts can sometimes block TV focus loops, be careful
        console.error("Failed to load trivia.");
        setAppState(AppState.CATEGORY_SELECT);
        return;
@@ -73,22 +65,28 @@ const App: React.FC = () => {
     setAppState(AppState.QUESTION);
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = (scoreMultiplier: number) => {
     if (!activeQuestion) return;
 
     // Update Player Score
     setPlayers(prev => prev.map((p, i) => {
       if (i === currentTurn) {
-        const change = isCorrect ? activeQuestion.pointValue : -activeQuestion.pointValue;
+        // Multiplier determines points: 1 = full, 0.5 = half, 0 = loss
+        // If wrong (0), subtract full value? Or just 0? Standard jeopardy subtracts.
+        // Let's implement: 1.0 = +Value, 0.5 = +Half, 0.0 = -Value
+        let change = 0;
+        if (scoreMultiplier === 1) change = activeQuestion.pointValue;
+        else if (scoreMultiplier === 0.5) change = Math.floor(activeQuestion.pointValue / 2);
+        else change = -activeQuestion.pointValue;
+
         return { ...p, score: p.score + change };
       }
       return p;
     }));
 
-    // Mark Question as Answered in the state
+    // Mark Question as Answered
     setCategories(prevCategories => {
       return prevCategories.map(col => {
-        // Find the column containing the question
         if (col.questions.some(q => q.id === activeQuestion.id)) {
            return {
              ...col,
@@ -101,13 +99,13 @@ const App: React.FC = () => {
       });
     });
 
-    // Move turn to next player
+    // Move Turn
     setCurrentTurn(prev => (prev + 1) % players.length);
     setActiveQuestion(null);
     setAppState(AppState.BOARD);
   };
 
-  // Check Game Over Condition
+  // Check Game Over
   useEffect(() => {
     if (appState === AppState.BOARD && categories.length > 0) {
       const allAnswered = categories.every(col => 

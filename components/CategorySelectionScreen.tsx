@@ -7,20 +7,23 @@ interface CategorySelectionScreenProps {
   onBack: () => void;
 }
 
-// Mapped exactly to https://the-trivia-api.com/docs/v2/
 const AVAILABLE_CATEGORIES: TriviaCategory[] = [
-  { id: 'general_knowledge', name: 'General', emoji: '🧠' },
+  // Standard (The Trivia API)
   { id: 'film_and_tv', name: 'Film & TV', emoji: '🎬' },
-  { id: 'music', name: 'Music', emoji: '🎵' },
-  { id: 'video_games', name: 'Games', emoji: '🎮' }, // Note: API usually uses 'video_games' or just 'games' depending on version, generic mapping often safe
-  { id: 'sport_and_leisure', name: 'Sports', emoji: '⚽' },
-  { id: 'history', name: 'History', emoji: '📜' },
+  { id: 'general_knowledge', name: 'General', emoji: '🧠' },
   { id: 'geography', name: 'Geography', emoji: '🌍' },
-  { id: 'arts_and_literature', name: 'Arts/Lit', emoji: '🎨' },
+  { id: 'history', name: 'History', emoji: '📜' },
+  { id: 'sport_and_leisure', name: 'Sports', emoji: '⚽' },
   { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'society_and_culture', name: 'Culture', emoji: '🏛️' },
-  { id: 'food_and_drink', name: 'Food', emoji: '🍔' },
-  { id: 'mythology', name: 'Mythology', emoji: '⚡' } // Check API support, usually under history/culture but good as standalone if supported or mapped manually. Leaving as requested.
+  
+  // Music (iTunes Custom)
+  { id: 'music_2010s', name: '2010s Hits', emoji: '📱' },
+  { id: 'music_2000s', name: '2000s Hits', emoji: '💿' },
+  { id: 'music_90s', name: '90s Hits', emoji: '📼' },
+  { id: 'music_80s', name: '80s Hits', emoji: '🕺' },
+  { id: 'music_rock', name: 'Rock Classics', emoji: '🎸' },
+  { id: 'music_hiphop', name: 'Hip Hop/R&B', emoji: '🎤' },
+  { id: 'music_movies', name: 'Movie Themes', emoji: '🍿' }
 ];
 
 export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = ({ onStartGame, onBack }) => {

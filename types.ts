@@ -27,17 +27,33 @@ export interface ApiQuestion {
   type: string;
 }
 
+// iTunes API Response Format
+export interface ItunesTrack {
+  trackId: number;
+  artistName: string;
+  trackName: string;
+  previewUrl: string;
+  kind: string;
+}
+
 export interface ProcessedQuestion {
   id: string;
-  category: string; // Display Name
+  category: string; 
   type: string;
   difficulty: string;
   question: string;
   correct_answer: string;
   incorrect_answers: string[];
-  all_answers: string[]; // Shuffled answers
+  all_answers: string[]; 
   isAnswered: boolean;
   pointValue: number;
+  // Multimedia extensions
+  mediaType: 'text' | 'audio';
+  audioUrl?: string;
+  answerReveal?: {
+    artist: string;
+    title: string;
+  };
 }
 
 export interface CategoryColumn {
@@ -53,7 +69,7 @@ export interface Player {
 }
 
 export interface TriviaCategory {
-  id: string; // Changed from number to string for API tags
+  id: string; 
   name: string;
   emoji: string;
 }
