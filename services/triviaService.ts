@@ -2,6 +2,7 @@ import { CategoryColumn, ProcessedQuestion, Difficulty, TriviaCategory } from '.
 import { decodeHtml, shuffleArray } from '../utils/helpers';
 
 const BASE_URL = 'https://opentdb.com/api.php';
+const TOKEN_URL = 'https://opentdb.com/api_token.php?command=request';
 
 // Map point values to difficulties conceptually
 const getDifficultyForIndex = (index: number): Difficulty => {
@@ -10,31 +11,80 @@ const getDifficultyForIndex = (index: number): Difficulty => {
   return Difficulty.HARD; // $1000
 };
 
+const getSessionToken = async (): Promise<string | null> => {
+  try {
+    const res = await fetch(TOKEN_URL);
+    const data = await res.json();
+    if (data.response_code === 0) {
+      return data.token;
+    }
+    return null;
+  } catch (e) {
+    console.warn("Could not fetch session token", e);
+    return null;
+  }
+};
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promise<CategoryColumn[]> => {
   try {
     const columns: CategoryColumn[] = [];
+    const token = await getSessionToken();
 
     // Fetch questions for each selected category sequentially
     for (const cat of selectedCategories) {
-      // Fetch 15 questions to ensure we have enough distribution
-      const url = `${BASE_URL}?amount=15&category=${cat.id}&type=multiple`;
-      
-      const res = await fetch(url);
-      
-      // Handle Rate Limiting (Wait 5 seconds if hit)
-      if (res.status === 429) {
-         await new Promise(resolve => setTimeout(resolve, 5000));
-         const retryRes = await fetch(url);
-         if (!retryRes.ok) throw new Error('API Retry failed');
+      let attempts = 0;
+      let success = false;
+      let data: any = null;
+
+      // 1. Fetch Loop with Retry for Rate Limits
+      while (attempts < 3 && !success) {
+        try {
+          // Fetch 15 questions to ensure we have enough distribution
+          let url = `${BASE_URL}?amount=15&category=${cat.id}&type=multiple`;
+          if (token) url += `&token=${token}`;
+
+          const res = await fetch(url);
+          
+          // Handle HTTP 429
+          if (res.status === 429) {
+            console.warn(`Hit HTTP 429 for ${cat.name}, waiting...`);
+            await wait(2000);
+            attempts++;
+            continue;
+          }
+
+          data = await res.json();
+
+          // Handle API Logic Rate Limit (Code 5)
+          if (data.response_code === 5) {
+            console.warn(`Hit API Code 5 (Rate Limit) for ${cat.name}, waiting...`);
+            await wait(2000);
+            attempts++;
+            continue;
+          }
+
+          if (data.response_code !== 0) {
+            console.warn(`Skipping category ${cat.name} due to API error code ${data.response_code}`);
+            break; // Fatal error for this category (e.g. not enough questions), stop retrying
+          }
+
+          // If we got here, we have data
+          success = true;
+
+        } catch (err) {
+          console.error(`Network error fetching ${cat.name}`, err);
+          attempts++;
+          await wait(1000);
+        }
+      }
+
+      if (!success || !data) {
+        continue; 
       }
       
-      const data = await res.json();
-      
-      if (data.response_code !== 0) {
-        console.warn(`Skipping category ${cat.name} due to API error code ${data.response_code}`);
-        continue;
-      }
-      
+      // 2. Process Data
       let pool = data.results as any[];
 
       // Bucket questions by difficulty
@@ -53,7 +103,7 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
         else if (targetDiff === Difficulty.MEDIUM && medium.length > 0) qRaw = medium.pop();
         else if (targetDiff === Difficulty.HARD && hard.length > 0) qRaw = hard.pop();
         else {
-          // Fallbacks
+          // Fallbacks if exact difficulty missing
           qRaw = medium.pop() || easy.pop() || hard.pop();
         }
 
@@ -83,8 +133,8 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
         });
       }
       
-      // Delay slightly between categories to be nice to API
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // 3. Mandatory Delay between categories to respect API terms
+      await wait(1500);
     }
 
     return columns;
