@@ -433,7 +433,7 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
   return questions;
 };
 
-// --- Logic E: Football Career Path ---
+// --- Logic E: Football Career Path (TEXT ONLY) ---
 const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
   const playedItems = getPlayedItems();
   const questions: ProcessedQuestion[] = [];
@@ -455,33 +455,6 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
 
     const uniqueId = `fc-${selectedPlayer.player}`;
 
-    // Parallel Fetching with Order Preservation
-    // We map the clubs to fetch promises
-    const clubPromises = selectedPlayer.clubs.map(async (clubName) => {
-       try {
-         // TheSportsDB: /searchteams.php?t=TeamName
-         const res = await fetch(`${SPORTS_DB_URL}?t=${encodeURIComponent(clubName)}`);
-         const data = await res.json();
-         // Extract badge
-         if (data.teams && data.teams[0] && data.teams[0].strTeamBadge) {
-           return data.teams[0].strTeamBadge as string;
-         }
-         return null;
-       } catch (e) {
-         console.warn(`Failed to fetch logo for ${clubName}`, e);
-         return null;
-       }
-    });
-
-    // Execute all requests concurrently
-    const results = await Promise.all(clubPromises);
-    
-    // Filter out nulls (failed fetches)
-    const orderedLogos = results.filter((url): url is string => url !== null);
-
-    // If no logos found, skip this player (or handle otherwise)
-    if (orderedLogos.length === 0) continue;
-
     questions.push({
       id: uniqueId,
       category: cat.name,
@@ -493,8 +466,8 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
       all_answers: [],
       isAnswered: false,
       pointValue: pointValues[level - 1],
-      mediaType: 'image_sequence',
-      imageUrls: orderedLogos,
+      mediaType: 'text_sequence',
+      clubList: selectedPlayer.clubs, // Pass raw strings
       timerDuration: 25, 
       answerReveal: {
         title: selectedPlayer.player,

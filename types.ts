@@ -48,10 +48,11 @@ export interface ProcessedQuestion {
   isAnswered: boolean;
   pointValue: number;
   // Multimedia extensions
-  mediaType: 'text' | 'audio' | 'image' | 'image_sequence';
+  mediaType: 'text' | 'audio' | 'image' | 'image_sequence' | 'text_sequence';
   audioUrl?: string;
   imageUrl?: string;
-  imageUrls?: string[]; // For sequences like Career Path
+  imageUrls?: string[]; // For sequences like Career Path (Images)
+  clubList?: string[]; // For Career Path (Text)
   infoText?: string; // Extra context (e.g. Country Name for capital questions)
   timerDuration?: number;
   answerReveal?: {

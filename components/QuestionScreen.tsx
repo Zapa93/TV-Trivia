@@ -40,6 +40,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   const isHonorSystem = question.type === 'honor-system' || question.type === 'music';
   
   const isImageSequence = question.mediaType === 'image_sequence';
+  const isTextSequence = question.mediaType === 'text_sequence' || question.clubList !== undefined;
 
   // --- AUDIO MODE LOGIC ---
   useEffect(() => {
@@ -96,9 +97,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     }
   }, [question.mediaType, timeLeft, isRevealed]);
 
-  // --- IMAGE / HONOR SYSTEM TIMER ---
+  // --- IMAGE / TEXT SEQUENCE / HONOR SYSTEM TIMER ---
   useEffect(() => {
-    if ((question.mediaType === 'image' || isImageSequence) && isHonorSystem && !isRevealed) {
+    if ((question.mediaType === 'image' || isImageSequence || isTextSequence) && isHonorSystem && !isRevealed) {
        const interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -111,7 +112,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [question.mediaType, isRevealed, isHonorSystem, isImageSequence]);
+  }, [question.mediaType, isRevealed, isHonorSystem, isImageSequence, isTextSequence]);
 
   // --- MULTIPLE CHOICE TIMER (Text & Movie Posters) ---
   useEffect(() => {
@@ -309,11 +310,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
         </div>
       )}
 
-      {/* ---------------- VISUAL LAYOUTS (Image & Sequences) ---------------- */}
-      {(question.mediaType === 'image' || isImageSequence) && (
+      {/* ---------------- VISUAL LAYOUTS (Image / Sequence / Text Sequence) ---------------- */}
+      {(question.mediaType === 'image' || isImageSequence || isTextSequence) && (
         <div className="flex-1 flex flex-col items-center justify-center z-10 p-4">
            
-           {/* IMAGE SEQUENCE (Career Path) */}
+           {/* IMAGE SEQUENCE (Old Career Path - unused but kept for safety) */}
            {isImageSequence && question.imageUrls && (
              <div className="w-full max-w-[90vw] mb-8 overflow-x-auto p-4 flex items-center justify-start space-x-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm mx-auto">
                {question.imageUrls.map((url, idx) => (
@@ -323,6 +324,22 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                    </div>
                    {idx < question.imageUrls!.length - 1 && (
                      <div className="text-5xl text-yellow-400 opacity-80 flex-shrink-0 font-bold">→</div>
+                   )}
+                 </React.Fragment>
+               ))}
+             </div>
+           )}
+
+           {/* TEXT SEQUENCE (New Football Career Path) */}
+           {isTextSequence && question.clubList && (
+             <div className="w-full max-w-7xl mb-8 p-6 flex flex-wrap items-center justify-center gap-4 bg-black/40 rounded-3xl border border-white/10 backdrop-blur-md mx-auto shadow-2xl">
+               {question.clubList.map((club, idx) => (
+                 <React.Fragment key={idx}>
+                   <div className="px-6 py-3 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 font-bold text-xl md:text-2xl text-cyan-100 shadow-lg text-center backdrop-blur-sm">
+                     {club}
+                   </div>
+                   {idx < question.clubList!.length - 1 && (
+                     <div className="text-3xl text-yellow-400 opacity-80 font-bold animate-pulse">→</div>
                    )}
                  </React.Fragment>
                ))}
