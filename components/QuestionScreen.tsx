@@ -310,14 +310,14 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
            
            {/* IMAGE SEQUENCE (Career Path) */}
            {isImageSequence && question.imageUrls && (
-             <div className="w-full max-w-[90vw] mb-8 overflow-x-auto p-4 flex items-center justify-center space-x-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+             <div className="w-full max-w-[90vw] mb-8 overflow-x-auto p-4 flex items-center justify-start space-x-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm mx-auto">
                {question.imageUrls.map((url, idx) => (
                  <React.Fragment key={idx}>
                    <div className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-full shadow-lg flex items-center justify-center">
                      <img src={url} alt="Club Logo" className="object-contain w-full h-full" />
                    </div>
                    {idx < question.imageUrls!.length - 1 && (
-                     <div className="text-4xl text-yellow-400 opacity-60 flex-shrink-0 font-bold">→</div>
+                     <div className="text-5xl text-yellow-400 opacity-80 flex-shrink-0 font-bold">→</div>
                    )}
                  </React.Fragment>
                ))}

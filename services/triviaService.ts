@@ -222,13 +222,6 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
     const selectedQuestions: ProcessedQuestion[] = [];
     const pointValues = [200, 400, 600, 800, 1000];
     
-    // Target Difficulty Curve:
-    // $200: Easy
-    // $400: Medium
-    // $600: Medium
-    // $800: Hard
-    // $1000: Hard
-    
     const slots = ['easy', 'medium', 'medium', 'hard', 'hard'];
     
     for (let i = 0; i < 5; i++) {
@@ -421,17 +414,17 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
     questions.push({
       id: uniqueId,
       category: cat.name,
-      type: 'multiple', // Multiple choice for Movies
+      type: 'multiple',
       difficulty: 'medium',
       question: "Guess the Release Year!",
       correct_answer: realYear.toString(),
-      incorrect_answers: [], // Not strictly needed as we populate all_answers
-      all_answers: Array.from(answers).sort(), // Sorted years looks better
+      incorrect_answers: [], 
+      all_answers: Array.from(answers).sort(),
       isAnswered: false,
       pointValue: pointValues[i],
       mediaType: 'image',
       imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-      infoText: movie.title, // Show title as hint context? Or reveal it? Let's show title as context.
+      infoText: movie.title, 
       timerDuration: 20
     });
     savePlayedItem(uniqueId);
@@ -446,7 +439,7 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
   const questions: ProcessedQuestion[] = [];
   const pointValues = [200, 400, 600, 800, 1000];
   
-  // Difficulty levels 1 to 5
+  // Difficulty levels 1 to 5 (mapped to grid rows)
   for (let level = 1; level <= 5; level++) {
     // Filter candidates for this level
     const candidates = FOOTBALL_CAREERS.filter(p => p.difficulty === level);
@@ -455,7 +448,7 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
     const shuffled = shuffle(candidates);
     let selectedPlayer = shuffled.find(p => !playedItems.includes(`fc-${p.player}`));
     
-    // Fallback if all players at this level played
+    // Fallback if all players at this level played (reset logic not implemented, just picking one)
     if (!selectedPlayer) selectedPlayer = shuffled[0];
 
     if (!selectedPlayer) continue;
@@ -464,38 +457,25 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
     const logoUrls: string[] = [];
 
     // Fetch logos for each club
-    // We do this concurrently for speed
-    await Promise.all(selectedPlayer.clubs.map(async (clubName) => {
-      try {
-        const res = await fetch(`${SPORTS_DB_URL}?t=${encodeURIComponent(clubName)}`);
-        const data = await res.json();
-        if (data.teams && data.teams[0] && data.teams[0].strTeamBadge) {
-          logoUrls.push(data.teams[0].strTeamBadge);
-        } else {
-          // Fallback if no logo found? Or just skip. 
-          // We'll push a placeholder or skip. Let's skip to keep it clean.
-        }
-      } catch (e) {
-        console.warn(`Failed to fetch logo for ${clubName}`);
-      }
-    }));
-    
-    // Ensure we have logos, but respect the order of clubs from the data (Promise.all might finish out of order if we pushed directly)
-    // Actually, to respect career order, we must process result carefully or use a sequential loop if strict order matters. 
-    // Career path MUST be in order.
-    
-    const orderedLogos: string[] = [];
-    for (const clubName of selectedPlayer.clubs) {
+    // Use Promise.all to fetch in parallel, but map results back to order
+    // We must maintain the career order
+    const clubPromises = selectedPlayer.clubs.map(async (clubName) => {
        try {
         const res = await fetch(`${SPORTS_DB_URL}?t=${encodeURIComponent(clubName)}`);
         const data = await res.json();
         if (data.teams && data.teams[0] && data.teams[0].strTeamBadge) {
-          orderedLogos.push(data.teams[0].strTeamBadge);
+          return data.teams[0].strTeamBadge as string;
         }
-      } catch (e) {
-        // ignore
-      }
-    }
+        return null;
+       } catch (e) {
+         return null;
+       }
+    });
+
+    const results = await Promise.all(clubPromises);
+    const orderedLogos = results.filter((url): url is string => url !== null);
+
+    if (orderedLogos.length === 0) continue; // Skip if no logos found
 
     questions.push({
       id: uniqueId,
@@ -510,7 +490,7 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
       pointValue: pointValues[level - 1],
       mediaType: 'image_sequence',
       imageUrls: orderedLogos,
-      timerDuration: 25, // Little more time to look at logos
+      timerDuration: 25, 
       answerReveal: {
         title: selectedPlayer.player,
         artist: "Career Path"
