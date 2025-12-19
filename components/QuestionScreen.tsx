@@ -23,8 +23,14 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   
   // Audio Mode States
   const [audioRevealed, setAudioRevealed] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15);
+  
+  // Timer Init: Use duration from question, default to 15s
+  const MAX_TIME = question.timerDuration || 15;
+  const [timeLeft, setTimeLeft] = useState(MAX_TIME);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Check if it's a Movie/TV round (Strict scoring: No Half Points)
+  const isMovieRound = question.category === 'Movie & TV Soundtrack';
 
   // --- AUDIO MODE LOGIC ---
   useEffect(() => {
@@ -114,7 +120,8 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     },
     onYellow: () => {
       if (question.mediaType === 'text') handleTextSelection(2);
-      else if (audioRevealed) handleAudioScore(0.5); // Yellow = Half (50% pts)
+      // Yellow (Half Points) is disabled for Movie Rounds
+      else if (audioRevealed && !isMovieRound) handleAudioScore(0.5); 
     },
     onBlue: () => {
       if (question.mediaType === 'text') handleTextSelection(3);
@@ -122,7 +129,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     onEnter: () => {
       if (question.mediaType === 'audio' && !audioRevealed) handleAudioReveal();
     }
-  }, [showResult, audioRevealed, question]);
+  }, [showResult, audioRevealed, question, isMovieRound]);
 
   // --- RENDER ---
 
@@ -174,7 +181,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
              <div className="w-96 h-4 bg-gray-700 rounded-full mb-8 overflow-hidden border border-white/20">
                 <div 
                    className="h-full bg-gradient-to-r from-green-400 to-yellow-400 transition-all duration-1000 ease-linear"
-                   style={{ width: `${(timeLeft / 15) * 100}%` }}
+                   style={{ width: `${(timeLeft / MAX_TIME) * 100}%` }}
                 ></div>
              </div>
            )}
@@ -186,7 +193,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                  {timeLeft > 0 ? "LISTENING..." : "TIME'S UP"}
                </h2>
                <p className="text-xl text-cyan-300">
-                  {question.category === 'Movie Themes' ? 'Guess the Movie!' : 'Guess the Song & Artist'}
+                  {question.category === 'Movie & TV Soundtrack' ? 'Guess the Movie/Show!' : 'Guess the Song & Artist'}
                </p>
                <div className="mt-8 bg-white/20 px-8 py-3 rounded-full inline-block border border-white/20">
                  Press <span className="font-bold text-white">OK</span> to Reveal
@@ -196,7 +203,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
              <div className="text-center animate-zoom-in">
                <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8 min-w-[500px]">
                   {/* Movie Label */}
-                  {question.category === 'Movie Themes' && (
+                  {isMovieRound && (
                     <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Movie / Show</span>
                   )}
                   
@@ -219,10 +226,15 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                     <div className="w-16 h-16 rounded-full bg-lg-red shadow-neon-red flex items-center justify-center text-2xl mb-2">❌</div>
                     <span className="font-bold text-red-400">0%</span>
                  </div>
-                 <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
-                    <span className="font-bold text-yellow-400">50%</span>
-                 </div>
+                 
+                 {/* Half Points: Only show if NOT a Movie Round */}
+                 {!isMovieRound && (
+                   <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
+                      <span className="font-bold text-yellow-400">50%</span>
+                   </div>
+                 )}
+
                  <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-lg-green shadow-neon-green flex items-center justify-center text-2xl mb-2">✅</div>
                     <span className="font-bold text-green-400">100%</span>

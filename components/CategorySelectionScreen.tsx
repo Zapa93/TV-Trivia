@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TriviaCategory } from '../types';
 import { useTVNavigation } from '../hooks/useTVNavigation';
+import { resetPlayedTracks } from '../services/triviaService';
 
 interface CategorySelectionScreenProps {
   onStartGame: (selectedCategories: TriviaCategory[]) => void;
@@ -26,7 +27,7 @@ const AVAILABLE_CATEGORIES: TriviaCategory[] = [
   { id: 'music_80s', name: '80s Hits', emoji: '🕺' },
   { id: 'music_rock', name: 'Rock Classics', emoji: '🎸' },
   { id: 'music_hiphop', name: 'Hip Hop/R&B', emoji: '🎤' },
-  { id: 'music_movies', name: 'Movie Themes', emoji: '🍿' }
+  { id: 'music_movies', name: 'Movie & TV Soundtrack', emoji: '🍿' }
 ];
 
 export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = ({ onStartGame, onBack }) => {
@@ -35,7 +36,9 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
 
   const GRID_COLS = 4;
   const TOTAL_CATS = AVAILABLE_CATEGORIES.length;
+  // Focus index after categories is the Start Button, then the Reset Button
   const START_BUTTON_INDEX = TOTAL_CATS;
+  const RESET_BUTTON_INDEX = TOTAL_CATS + 1;
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => {
@@ -48,12 +51,20 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
     });
   };
 
+  const handleResetHistory = () => {
+    if (confirm("Clear played song history? Songs may repeat.")) {
+      resetPlayedTracks();
+    }
+  };
+
   const isValid = selectedIds.length >= 4 && selectedIds.length <= 6;
 
   useTVNavigation({
     onUp: () => {
       if (focusIndex === START_BUTTON_INDEX) {
         setFocusIndex(TOTAL_CATS - Math.floor(GRID_COLS / 2));
+      } else if (focusIndex === RESET_BUTTON_INDEX) {
+        setFocusIndex(START_BUTTON_INDEX);
       } else if (focusIndex >= GRID_COLS) {
         setFocusIndex(prev => prev - GRID_COLS);
       }
@@ -63,14 +74,16 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
         setFocusIndex(prev => prev + GRID_COLS);
       } else if (focusIndex < TOTAL_CATS) {
         setFocusIndex(START_BUTTON_INDEX);
+      } else if (focusIndex === START_BUTTON_INDEX) {
+        setFocusIndex(RESET_BUTTON_INDEX);
       }
     },
     onLeft: () => {
-      if (focusIndex === START_BUTTON_INDEX) return;
+      if (focusIndex === START_BUTTON_INDEX || focusIndex === RESET_BUTTON_INDEX) return;
       if (focusIndex % GRID_COLS !== 0) setFocusIndex(prev => prev - 1);
     },
     onRight: () => {
-      if (focusIndex === START_BUTTON_INDEX) return;
+      if (focusIndex === START_BUTTON_INDEX || focusIndex === RESET_BUTTON_INDEX) return;
       if ((focusIndex + 1) % GRID_COLS !== 0) setFocusIndex(prev => prev + 1);
     },
     onEnter: () => {
@@ -79,6 +92,8 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
           const selectedCats = AVAILABLE_CATEGORIES.filter(c => selectedIds.includes(c.id));
           onStartGame(selectedCats);
         }
+      } else if (focusIndex === RESET_BUTTON_INDEX) {
+        handleResetHistory();
       } else {
         toggleSelection(AVAILABLE_CATEGORIES[focusIndex].id);
       }
@@ -110,7 +125,7 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-4 gap-4 mb-10 w-full max-w-6xl px-8 h-[60vh] overflow-y-auto p-4 hide-scrollbar">
+      <div className="grid grid-cols-4 gap-4 mb-8 w-full max-w-6xl px-8 h-[55vh] overflow-y-auto p-4 hide-scrollbar">
         {AVAILABLE_CATEGORIES.map((cat, idx) => {
           const isSelected = selectedIds.includes(cat.id);
           const isFocused = focusIndex === idx;
@@ -160,20 +175,34 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
         })}
       </div>
 
-      {/* Start Button */}
-      <div 
-        className={`
-          px-16 py-5 rounded-full border-2 transition-all duration-300 flex items-center space-x-4
-          ${focusIndex === START_BUTTON_INDEX ? 'tv-focus scale-110' : ''}
-          ${isValid 
-            ? 'bg-gradient-to-r from-magic-cyan to-blue-600 text-white border-white/50 shadow-neon-blue cursor-pointer' 
-            : 'bg-gray-900/50 text-gray-500 border-gray-700/50'
-          }
-        `}
-      >
-        <span className="font-black tracking-[0.2em] uppercase text-xl">BEGIN GAME</span>
-        {isValid && <span className="bg-white text-blue-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-lg">OK</span>}
+      {/* Actions Container */}
+      <div className="flex flex-col items-center space-y-4">
+        {/* Start Button */}
+        <div 
+          className={`
+            px-16 py-4 rounded-full border-2 transition-all duration-300 flex items-center space-x-4
+            ${focusIndex === START_BUTTON_INDEX ? 'tv-focus scale-110' : ''}
+            ${isValid 
+              ? 'bg-gradient-to-r from-magic-cyan to-blue-600 text-white border-white/50 shadow-neon-blue cursor-pointer' 
+              : 'bg-gray-900/50 text-gray-500 border-gray-700/50'
+            }
+          `}
+        >
+          <span className="font-black tracking-[0.2em] uppercase text-xl">BEGIN GAME</span>
+          {isValid && <span className="bg-white text-blue-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-lg">OK</span>}
+        </div>
+
+        {/* Reset History Button */}
+        <div 
+          className={`
+             px-6 py-2 rounded-full border border-red-900/50 transition-all duration-300
+             ${focusIndex === RESET_BUTTON_INDEX ? 'tv-focus bg-red-900/80 border-red-500 text-white' : 'text-red-400/70 hover:text-red-300'}
+          `}
+        >
+           <span className="text-xs font-bold uppercase tracking-widest">Reset Song History</span>
+        </div>
       </div>
+
     </div>
   );
 };

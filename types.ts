@@ -50,6 +50,7 @@ export interface ProcessedQuestion {
   // Multimedia extensions
   mediaType: 'text' | 'audio';
   audioUrl?: string;
+  timerDuration?: number;
   answerReveal?: {
     artist: string;
     title: string;

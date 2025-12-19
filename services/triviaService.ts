@@ -11,8 +11,37 @@ import {
 
 const TRIVIA_API_URL = 'https://the-trivia-api.com/v2/questions';
 const ITUNES_API_URL = 'https://itunes.apple.com/search';
+const PLAYED_TRACKS_KEY = 'trivia_played_tracks';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// --- LocalStorage Helpers ---
+
+const getPlayedTracks = (): string[] => {
+  try {
+    const stored = localStorage.getItem(PLAYED_TRACKS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.warn("Failed to read played tracks", e);
+    return [];
+  }
+};
+
+const savePlayedTrack = (id: string) => {
+  try {
+    const current = getPlayedTracks();
+    if (!current.includes(id)) {
+      current.push(id);
+      localStorage.setItem(PLAYED_TRACKS_KEY, JSON.stringify(current));
+    }
+  } catch (e) {
+    console.warn("Failed to save played track", e);
+  }
+};
+
+export const resetPlayedTracks = () => {
+  localStorage.removeItem(PLAYED_TRACKS_KEY);
+};
 
 // Local Fisher-Yates Shuffle
 const shuffle = <T>(array: T[]): T[] => {
@@ -28,13 +57,20 @@ type MusicItem = string | { query: string; title: string };
 
 // --- Smart Fetch Logic (Mixed Strings & Objects) ---
 const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
-  // Shuffle and pick a buffer (8) to ensure we get 5 valid ones
+  const playedTracks = getPlayedTracks();
+  
+  // Shuffle and pick a larger buffer (25) to increase odds of finding unique unplayed songs
   const shuffledList = shuffle(list);
-  const candidates = shuffledList.slice(0, 12); // Increased buffer slightly
+  const candidates = shuffledList.slice(0, 25); 
   
   const questions: ProcessedQuestion[] = [];
-  const FIXED_MUSIC_VALUE = 400;
+  const duplicatesBuffer: ProcessedQuestion[] = []; // Store valid but played tracks as fallback
+  
   const isMovieCat = cat.id === 'music_movies';
+
+  // --- Rules Configuration ---
+  const POINT_VALUE = isMovieCat ? 600 : 400;
+  const TIMER_DURATION = isMovieCat ? 25 : 15;
 
   for (const item of candidates) {
     if (questions.length >= 5) break;
@@ -62,10 +98,23 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       // Strict Validation for Artist Mode
       if (!isObject) {
           const searchArtist = (item as string).toLowerCase();
-          // Filter out results where the artist name doesn't include the search term
-          validTracks = validTracks.filter((t: any) => 
-              (t.artistName || "").toLowerCase().includes(searchArtist)
-          );
+          
+          validTracks = validTracks.filter((t: any) => {
+             const artistLower = (t.artistName || "").toLowerCase();
+             const trackLower = (t.trackName || "").toLowerCase();
+             const collectionLower = (t.collectionName || "").toLowerCase();
+
+             // 1. Strict Artist Check
+             if (!artistLower.includes(searchArtist)) return false;
+
+             // 2. Anti-Cover/Tribute/Karaoke Filter
+             const forbiddenTerms = ["tribute", "cover", "karaoke"];
+             if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
+             if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
+             if (forbiddenTerms.some(term => artistLower.includes(term))) return false;
+
+             return true;
+          });
       }
 
       if (validTracks.length === 0) continue;
@@ -79,52 +128,82 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         track = validTracks[0];
       }
 
+      const trackId = track.trackId.toString();
+
       // Logic for Answer Display
       let artistDisplay = '';
       let titleDisplay = '';
 
       if (isMovieCat) {
-        // For Movies: Main Display (Answer) is the Movie Name
+        // For Movies: Only show the Source (Movie/TV Show Name)
+        // QuestionScreen displays 'title' as H2 (Big) and 'artist' as H3 (Small)
         if (isObject) {
-           artistDisplay = (item as { title: string }).title; // Movie Name
-           titleDisplay = track.artistName; // Composer (Hidden usually)
+           titleDisplay = (item as { title: string }).title; // Movie Name
+           artistDisplay = ""; // Hide artist/track info
         } else {
-           artistDisplay = track.collectionName || track.artistName;
-           titleDisplay = track.trackName;
+           titleDisplay = track.collectionName || "Unknown Source";
+           artistDisplay = "";
         }
       } else {
         // Standard Music
         if (isObject) {
+           // Specific Song Mode: Use custom title from our list for the Song Name
+           titleDisplay = (item as { title: string }).title; 
            artistDisplay = track.artistName;
-           titleDisplay = (item as { title: string }).title; // Use custom title
         } else {
-           artistDisplay = track.artistName;
+           // Artist Mode
            titleDisplay = track.trackName;
+           artistDisplay = track.artistName;
         }
       }
 
-      questions.push({
-        id: `music-${track.trackId}-${questions.length}`,
+      // Construct Question Object
+      const newQuestion: ProcessedQuestion = {
+        id: `music-${track.trackId}`, // Temporary ID
         category: cat.name,
         type: 'music',
         difficulty: 'honor-system',
-        question: isMovieCat ? "Guess the Movie!" : "Listen & Guess!",
+        question: isMovieCat ? "Guess the Soundtrack!" : "Listen & Guess!",
         correct_answer: "Honor System",
         incorrect_answers: [],
         all_answers: [],
         isAnswered: false,
-        pointValue: FIXED_MUSIC_VALUE,
+        pointValue: POINT_VALUE,
         mediaType: 'audio',
         audioUrl: track.previewUrl,
+        timerDuration: TIMER_DURATION,
         answerReveal: {
-          artist: artistDisplay, // For Movies: Movie Name. For Music: Artist.
-          title: titleDisplay    // For Movies: Track Name. For Music: Song Title.
+          artist: artistDisplay,
+          title: titleDisplay
         }
-      });
+      };
+
+      // Check History
+      if (playedTracks.includes(trackId)) {
+        // It's a duplicate. Save it in buffer but don't add to main list yet.
+        duplicatesBuffer.push(newQuestion);
+        continue;
+      }
+
+      // It's Unique! Add it.
+      // Fix ID index relative to current length
+      newQuestion.id = `music-${track.trackId}-${questions.length}`;
+      questions.push(newQuestion);
+      savePlayedTrack(trackId);
 
     } catch (e) {
       console.warn("Fetch failed for item:", item);
     }
+  }
+
+  // Fallback: If we couldn't find 5 unique songs, fill up with duplicates
+  while (questions.length < 5 && duplicatesBuffer.length > 0) {
+     console.warn(`Ran out of unique songs for ${cat.name}. Using a duplicate.`);
+     const fallback = duplicatesBuffer.pop();
+     if (fallback) {
+        fallback.id = `music-dup-${questions.length}`; // Ensure unique key for React
+        questions.push(fallback);
+     }
   }
 
   return questions;
