@@ -35,12 +35,15 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Checks
-  const isMovieRound = question.category === 'Movie & TV Soundtrack';
+  const isMovieSoundtrack = question.category === 'TV/Movie Soundtrack';
   const isMultipleChoice = question.type === 'multiple' || question.type === 'text';
   const isHonorSystem = question.type === 'honor-system' || question.type === 'music';
   
   const isImageSequence = question.mediaType === 'image_sequence';
   const isTextSequence = question.mediaType === 'text_sequence' || question.clubList !== undefined;
+
+  // Rule: Only Music (excluding soundtracks) gets the 50% option
+  const canUseHalfPoints = question.type === 'music' && !isMovieSoundtrack;
 
   // --- AUDIO MODE LOGIC ---
   useEffect(() => {
@@ -188,7 +191,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     },
     onYellow: () => {
       if (isMultipleChoice) handleTextSelection(2);
-      else if (isRevealed && !isMovieRound) handleRevealScore(0.5); 
+      else if (isRevealed && canUseHalfPoints) handleRevealScore(0.5); 
     },
     onBlue: () => {
       if (isMultipleChoice) handleTextSelection(3);
@@ -196,7 +199,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     onEnter: () => {
       if (isHonorSystem && !isRevealed) handleReveal();
     }
-  }, [showResult, isRevealed, question, isMovieRound, isMultipleChoice, isHonorSystem]);
+  }, [showResult, isRevealed, question, isMultipleChoice, isHonorSystem, canUseHalfPoints]);
 
   // --- RENDER ---
 
@@ -265,7 +268,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                  {timeLeft > 0 ? "LISTENING..." : `GUESS NOW: ${guessingTime}s`}
                </h2>
                <p className="text-xl text-cyan-300">
-                  {question.category === 'Movie & TV Soundtrack' ? 'Guess the Movie/Show!' : 'Guess the Song & Artist'}
+                  {isMovieSoundtrack ? 'Guess the Movie/Show!' : 'Guess the Song & Artist'}
                </p>
                <div className="mt-8 bg-white/20 px-8 py-3 rounded-full inline-block border border-white/20">
                  Press <span className="font-bold text-white">OK</span> to Reveal
@@ -274,7 +277,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
            ) : (
              <div className="text-center animate-zoom-in">
                <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8 min-w-[500px]">
-                  {isMovieRound && (
+                  {isMovieSoundtrack && (
                     <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Movie / Show</span>
                   )}
                   <h2 className="text-4xl font-black text-magic-cyan mb-2 drop-shadow-md">
@@ -293,7 +296,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                     <span className="font-bold text-red-400">0%</span>
                  </div>
                  
-                 {!isMovieRound && (
+                 {canUseHalfPoints && (
                    <div className="flex flex-col items-center">
                       <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
                       <span className="font-bold text-yellow-400">50%</span>
@@ -402,9 +405,14 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                  <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-lg-red shadow-neon-red flex items-center justify-center text-2xl mb-2">❌</div>
                  </div>
-                 <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
-                 </div>
+                 
+                 {/* Only show Half Points for applicable categories (Music) - Career/Geo excluded here */}
+                 {canUseHalfPoints && (
+                   <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
+                   </div>
+                 )}
+
                  <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-lg-green shadow-neon-green flex items-center justify-center text-2xl mb-2">✅</div>
                  </div>

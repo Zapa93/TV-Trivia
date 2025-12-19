@@ -13,7 +13,7 @@ import {
 const TRIVIA_API_URL = 'https://the-trivia-api.com/v2/questions';
 const ITUNES_API_URL = 'https://itunes.apple.com/search';
 const REST_COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,flags,capital,population';
-const TMDB_API_URL = 'https://api.themoviedb.org/3/movie/top_rated';
+const TMDB_API_URL = 'https://api.themoviedb.org/3/discover/movie';
 const SPORTS_DB_URL = 'https://www.thesportsdb.com/api/v1/json/3/searchteams.php';
 
 const PLAYED_ITEMS_KEY = 'trivia_played_items_v2';
@@ -368,15 +368,28 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
   const questions: ProcessedQuestion[] = [];
   const pointValues = [200, 400, 600, 800, 1000];
 
-  // Randomize pages to get different movies (Pages 1-50 are usually safe for top rated)
-  const pages = shuffle(Array.from({length: 50}, (_, i) => i + 1)).slice(0, 5);
+  // Randomize pages to get different movies (Pages 1-20 for popularity sort)
+  // sort_by=vote_count.desc ensures we get blockbusters
+  const pages = shuffle(Array.from({length: 20}, (_, i) => i + 1)).slice(0, 5);
   
   // We need to fetch multiple pages potentially to find 5 fresh movies
   const candidates: any[] = [];
   
   try {
      for (const page of pages) {
-        const res = await fetch(`${TMDB_API_URL}?api_key=${apiKey}&language=en-US&page=${page}`);
+        // Construct URL with Discover parameters for Blockbusters
+        const params = new URLSearchParams({
+          api_key: apiKey,
+          language: 'en-US',
+          sort_by: 'vote_count.desc',
+          'primary_release_date.gte': '1970-01-01',
+          'vote_count.gte': '1000',
+          include_adult: 'false',
+          include_video: 'false',
+          page: page.toString()
+        });
+        
+        const res = await fetch(`${TMDB_API_URL}?${params.toString()}`);
         const data = await res.json();
         if (data.results) {
             candidates.push(...data.results);
