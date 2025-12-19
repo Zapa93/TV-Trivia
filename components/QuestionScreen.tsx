@@ -77,6 +77,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   // Secondary Timer for Audio
   useEffect(() => {
     if (question.mediaType === 'audio' && timeLeft <= 0 && !isRevealed) {
+      // STOP MUSIC HERE: Ensure music stops exactly when the first timer ends
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
       const interval = setInterval(() => {
         setGuessingTime(prev => {
           if (prev <= 1) {
