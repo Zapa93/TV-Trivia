@@ -49,14 +49,18 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   useEffect(() => {
     if (question.mediaType === 'audio' && question.audioUrl) {
       const audio = new Audio(question.audioUrl);
-      audio.volume = 0.8;
+      audio.volume = 1.0; // Enforce Max Volume
       audioRef.current = audio;
 
       audio.onended = () => {
         setTimeLeft(0);
       };
 
-      audio.play().catch(e => console.warn("Preview play blocked", e));
+      // Ensure explicit play
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+          playPromise.catch(e => console.warn("Audio preview blocked by browser policy:", e));
+      }
       
       const interval = setInterval(() => {
         setTimeLeft((prev) => {
@@ -204,29 +208,30 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   // --- RENDER ---
 
   const colors = [
-    { name: 'Red', bg: 'bg-lg-red', shadow: 'shadow-neon-red', border: 'border-lg-red' },
-    { name: 'Green', bg: 'bg-lg-green', shadow: 'shadow-neon-green', border: 'border-lg-green' },
-    { name: 'Yellow', bg: 'bg-lg-yellow', shadow: 'shadow-neon-yellow', border: 'border-lg-yellow' },
-    { name: 'Blue', bg: 'bg-lg-blue', shadow: 'shadow-neon-blue', border: 'border-lg-blue' },
+    { name: 'Red', bg: 'bg-lg-red', shadow: 'shadow-none', border: 'border-lg-red' },
+    { name: 'Green', bg: 'bg-lg-green', shadow: 'shadow-none', border: 'border-lg-green' },
+    { name: 'Yellow', bg: 'bg-lg-yellow', shadow: 'shadow-none', border: 'border-lg-yellow' },
+    { name: 'Blue', bg: 'bg-lg-blue', shadow: 'shadow-none', border: 'border-lg-blue' },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col animate-zoom-in backdrop-blur-xl bg-indigo-950/80">
+    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950">
       
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-purple-900/50 pointer-events-none"></div>
+      {/* Background with reduced complexity */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900 pointer-events-none"></div>
 
       {/* Correct Answer Flash (Multiple Choice) */}
       {showResult && selectedIdx === correctIndex && (
-         <div className="absolute inset-0 bg-green-500/20 z-0 animate-pulse-fast pointer-events-none mix-blend-screen"></div>
+         <div className="absolute inset-0 bg-green-500/20 z-0 animate-pulse pointer-events-none"></div>
       )}
 
       {/* Header */}
-      <div className="p-8 flex justify-between items-end border-b border-white/10 bg-black/20 z-10 shadow-lg">
+      <div className="p-8 flex justify-between items-end border-b border-white/10 bg-black/40 z-10">
         <div className="flex flex-col">
-          <span className="text-magic-cyan font-bold tracking-[0.2em] uppercase mb-1 drop-shadow-md text-xl">{question.category}</span>
+          <span className="text-magic-cyan font-bold tracking-[0.2em] uppercase mb-1 text-xl">{question.category}</span>
           <span className="text-purple-200 text-sm uppercase tracking-wide font-semibold">{question.difficulty}</span>
         </div>
-        <div className="text-7xl font-mono font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+        <div className="text-7xl font-mono font-black text-white">
           ${question.pointValue}
         </div>
       </div>
@@ -236,9 +241,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
         <div className="flex-1 flex flex-col items-center justify-center z-10 p-12">
            
            <div className={`
-              w-64 h-64 rounded-full border-8 border-gray-900 bg-black relative shadow-2xl flex items-center justify-center mb-8
+              w-64 h-64 rounded-full border-8 border-slate-800 bg-black relative flex items-center justify-center mb-8
               ${!isRevealed && timeLeft > 0 ? 'animate-spin' : ''}
-           `} style={{ animationDuration: '3s' }}>
+           `} style={{ animationDuration: '4s' }}>
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-magic-pink to-purple-600 border-4 border-white/20 flex items-center justify-center">
                  <span className="text-2xl">🎵</span>
               </div>
@@ -264,23 +269,23 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
            {!isRevealed ? (
              <div className="text-center">
-               <h2 className="text-4xl font-black text-white mb-4 tracking-widest animate-pulse">
+               <h2 className="text-4xl font-black text-white mb-4 tracking-widest">
                  {timeLeft > 0 ? "LISTENING..." : `GUESS NOW: ${guessingTime}s`}
                </h2>
                <p className="text-xl text-cyan-300">
                   {isMovieSoundtrack ? 'Guess the Movie/Show!' : 'Guess the Song & Artist'}
                </p>
-               <div className="mt-8 bg-white/20 px-8 py-3 rounded-full inline-block border border-white/20">
+               <div className="mt-8 bg-slate-800 px-8 py-3 rounded-full inline-block border border-white/20">
                  Press <span className="font-bold text-white">OK</span> to Reveal
                </div>
              </div>
            ) : (
-             <div className="text-center animate-zoom-in">
-               <div className="glass-panel p-8 rounded-2xl border-magic-cyan mb-8 min-w-[500px]">
+             <div className="text-center">
+               <div className="bg-slate-900 border-2 border-slate-700 p-8 rounded-2xl mb-8 min-w-[500px]">
                   {isMovieSoundtrack && (
                     <span className="block text-xs uppercase tracking-widest text-gray-400 mb-1">Movie / Show</span>
                   )}
-                  <h2 className="text-4xl font-black text-magic-cyan mb-2 drop-shadow-md">
+                  <h2 className="text-4xl font-black text-magic-cyan mb-2">
                     {question.answerReveal?.title}
                   </h2>
                   <h3 className="text-2xl font-semibold text-white/80">
@@ -292,19 +297,19 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                
                <div className="flex justify-center gap-6">
                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-red shadow-neon-red flex items-center justify-center text-2xl mb-2">❌</div>
+                    <div className="w-16 h-16 rounded-full bg-lg-red flex items-center justify-center text-2xl mb-2">❌</div>
                     <span className="font-bold text-red-400">0%</span>
                  </div>
                  
                  {canUseHalfPoints && (
                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
+                      <div className="w-16 h-16 rounded-full bg-lg-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
                       <span className="font-bold text-yellow-400">50%</span>
                    </div>
                  )}
 
                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-green shadow-neon-green flex items-center justify-center text-2xl mb-2">✅</div>
+                    <div className="w-16 h-16 rounded-full bg-lg-green flex items-center justify-center text-2xl mb-2">✅</div>
                     <span className="font-bold text-green-400">100%</span>
                  </div>
                </div>
@@ -317,32 +322,16 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
       {(question.mediaType === 'image' || isImageSequence || isTextSequence) && (
         <div className="flex-1 flex flex-col items-center justify-center z-10 p-4">
            
-           {/* IMAGE SEQUENCE (Old Career Path - unused but kept for safety) */}
-           {isImageSequence && question.imageUrls && (
-             <div className="w-full max-w-[90vw] mb-8 overflow-x-auto p-4 flex items-center justify-start space-x-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm mx-auto">
-               {question.imageUrls.map((url, idx) => (
-                 <React.Fragment key={idx}>
-                   <div className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-full shadow-lg flex items-center justify-center">
-                     <img src={url} alt="Club Logo" className="object-contain w-full h-full" />
-                   </div>
-                   {idx < question.imageUrls!.length - 1 && (
-                     <div className="text-5xl text-yellow-400 opacity-80 flex-shrink-0 font-bold">→</div>
-                   )}
-                 </React.Fragment>
-               ))}
-             </div>
-           )}
-
-           {/* TEXT SEQUENCE (New Football Career Path) */}
+           {/* TEXT SEQUENCE (Football Career Path) */}
            {isTextSequence && question.clubList && (
-             <div className="w-full max-w-7xl mb-8 p-6 flex flex-wrap items-center justify-center gap-4 bg-black/40 rounded-3xl border border-white/10 backdrop-blur-md mx-auto shadow-2xl">
+             <div className="w-full max-w-7xl mb-8 p-6 flex flex-wrap items-center justify-center gap-4 bg-slate-900 rounded-3xl border border-slate-700 mx-auto">
                {question.clubList.map((club, idx) => (
                  <React.Fragment key={idx}>
-                   <div className="px-6 py-3 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 font-bold text-xl md:text-2xl text-cyan-100 shadow-lg text-center backdrop-blur-sm">
+                   <div className="px-6 py-3 rounded-full bg-slate-800 border border-slate-600 font-bold text-xl md:text-2xl text-cyan-100 text-center">
                      {club}
                    </div>
                    {idx < question.clubList!.length - 1 && (
-                     <div className="text-3xl text-yellow-400 opacity-80 font-bold animate-pulse">→</div>
+                     <div className="text-3xl text-yellow-400 opacity-80 font-bold">→</div>
                    )}
                  </React.Fragment>
                ))}
@@ -351,16 +340,16 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
            {/* SINGLE IMAGE */}
            {question.mediaType === 'image' && (
-              <div className={`relative rounded-lg overflow-hidden shadow-2xl border-4 border-white/20 max-w-4xl ${isMultipleChoice ? 'max-h-[35vh] mb-6' : 'max-h-[45vh] mb-8'}`}>
+              <div className={`relative rounded-lg overflow-hidden border-4 border-slate-700 max-w-4xl bg-black ${isMultipleChoice ? 'max-h-[35vh] mb-6' : 'max-h-[45vh] mb-8'}`}>
                   {question.imageUrl && (
                     <img src={question.imageUrl} alt="Visual" className="object-contain h-full w-full" style={{ maxHeight: 'inherit' }} />
                   )}
               </div>
            )}
 
-           {/* Context Text (e.g. Country Name or Movie Title) */}
+           {/* Context Text */}
            {question.infoText && !isRevealed && !showResult && (
-             <div className="mb-6 text-2xl font-bold text-yellow-400 drop-shadow-md bg-black/60 px-6 py-2 rounded-full border border-yellow-400/30">
+             <div className="mb-6 text-2xl font-bold text-yellow-400 bg-black/80 px-6 py-2 rounded-full border border-yellow-400/30">
                {question.infoText}
              </div>
            )}
@@ -378,22 +367,22 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
            {/* ---- HONOR SYSTEM REVEAL (Geo Flags/Capitals/Career) ---- */}
            {isHonorSystem && !isRevealed && (
              <div className="text-center">
-               <h2 className="text-4xl font-black text-white mb-4 tracking-widest animate-pulse">
+               <h2 className="text-4xl font-black text-white mb-4 tracking-widest">
                  {question.question}
                </h2>
-               <div className="mt-4 bg-white/20 px-8 py-3 rounded-full inline-block border border-white/20">
+               <div className="mt-4 bg-slate-800 px-8 py-3 rounded-full inline-block border border-white/20">
                  Press <span className="font-bold text-white">OK</span> to Reveal
                </div>
              </div>
            )}
 
            {isHonorSystem && isRevealed && (
-             <div className="text-center animate-zoom-in">
-               <div className="glass-panel p-6 rounded-2xl border-emerald-500 mb-6 min-w-[500px]">
+             <div className="text-center">
+               <div className="bg-slate-900 border-2 border-emerald-500 p-6 rounded-2xl mb-6 min-w-[500px]">
                   {question.infoText && (
                     <div className="text-xl text-gray-300 mb-2">{question.infoText}</div>
                   )}
-                  <h2 className="text-5xl font-black text-emerald-400 mb-2 drop-shadow-md">
+                  <h2 className="text-5xl font-black text-emerald-400 mb-2">
                     {question.answerReveal?.title}
                   </h2>
                   <h3 className="text-xl font-semibold text-white/60 uppercase tracking-widest">
@@ -403,18 +392,17 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                
                <div className="flex justify-center gap-6">
                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-red shadow-neon-red flex items-center justify-center text-2xl mb-2">❌</div>
+                    <div className="w-16 h-16 rounded-full bg-lg-red flex items-center justify-center text-2xl mb-2">❌</div>
                  </div>
                  
-                 {/* Only show Half Points for applicable categories (Music) - Career/Geo excluded here */}
                  {canUseHalfPoints && (
                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 rounded-full bg-lg-yellow shadow-neon-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
+                      <div className="w-16 h-16 rounded-full bg-lg-yellow flex items-center justify-center text-2xl mb-2">⚖️</div>
                    </div>
                  )}
 
                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-lg-green shadow-neon-green flex items-center justify-center text-2xl mb-2">✅</div>
+                    <div className="w-16 h-16 rounded-full bg-lg-green flex items-center justify-center text-2xl mb-2">✅</div>
                  </div>
                </div>
              </div>
@@ -427,15 +415,15 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                  <div className="grid grid-cols-2 gap-6 w-full max-w-5xl px-8">
                     {question.all_answers.map((ans, idx) => {
                       const config = colors[idx];
-                      let containerClass = "glass-panel border-l-8 text-white/90";
+                      let containerClass = "bg-slate-900/90 border-l-8 text-white/90";
                       let borderColor = config.border;
                       
                       if (showResult) {
                          if (idx === correctIndex) {
-                           containerClass = "bg-gradient-to-r from-green-600 to-green-500 text-white border-l-8 border-white shadow-neon-green";
+                           containerClass = "bg-green-700 text-white border-l-8 border-white";
                            borderColor = "border-white";
                          } else if (idx === selectedIdx) {
-                           containerClass = "bg-red-600/80 text-white border-l-8 border-white opacity-80";
+                           containerClass = "bg-red-700 text-white border-l-8 border-white opacity-90";
                          } else {
                            containerClass = "bg-black/40 opacity-30 border-gray-700 text-gray-500";
                          }
@@ -446,8 +434,8 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                       }
 
                       return (
-                        <div key={idx} className={`relative h-20 rounded-r-2xl flex items-center px-6 transition-all duration-300 ${containerClass} ${borderColor}`}>
-                           <div className={`absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-2 border-white/20 shadow-xl flex items-center justify-center ${config.bg} ${config.shadow}`}>
+                        <div key={idx} className={`relative h-20 rounded-r-2xl flex items-center px-6 transition-colors duration-200 ${containerClass} ${borderColor}`}>
+                           <div className={`absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-2 border-white/20 shadow-xl flex items-center justify-center ${config.bg}`}>
                            </div>
                            <span className="text-2xl font-bold ml-4">{ans}</span>
                         </div>
@@ -473,9 +461,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
           )}
 
           <div className="flex-1 flex items-center justify-center p-12 text-center z-10">
-            <div className="glass-panel p-12 rounded-[2rem] max-w-6xl bg-gradient-to-br from-white/10 to-transparent border-white/20 shadow-2xl">
+            <div className="bg-slate-900 p-12 rounded-[2rem] max-w-6xl border-2 border-slate-700 shadow-2xl">
               {showResult && timeLeft <= 0 && selectedIdx === null && (
-                 <div className="text-red-500 font-black text-4xl mb-4 animate-bounce">TIME'S UP!</div>
+                 <div className="text-red-500 font-black text-4xl mb-4">TIME'S UP!</div>
               )}
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-md">
                 {question.question}
@@ -487,15 +475,15 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
             <div className="grid grid-cols-2 gap-8 max-w-7xl mx-auto">
               {question.all_answers.map((ans, idx) => {
                 const config = colors[idx];
-                let containerClass = "glass-panel border-l-8 text-white/90";
+                let containerClass = "bg-slate-900 border-l-8 text-white/90";
                 let borderColor = config.border;
                 
                 if (showResult) {
                    if (idx === correctIndex) {
-                     containerClass = "bg-gradient-to-r from-green-600 to-green-500 text-white border-l-8 border-white shadow-neon-green";
+                     containerClass = "bg-green-700 text-white border-l-8 border-white";
                      borderColor = "border-white";
                    } else if (idx === selectedIdx) {
-                     containerClass = "bg-red-600/80 text-white border-l-8 border-white opacity-80";
+                     containerClass = "bg-red-700 text-white border-l-8 border-white opacity-90";
                    } else {
                      containerClass = "bg-black/40 opacity-30 border-gray-700 text-gray-500";
                    }
@@ -506,8 +494,8 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                 }
 
                 return (
-                  <div key={idx} className={`relative h-32 md:h-40 rounded-r-3xl flex items-center px-10 transition-all duration-300 ${containerClass} ${borderColor}`}>
-                    <div className={`absolute -left-7 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border-4 border-white/20 shadow-xl flex items-center justify-center ${config.bg} ${config.shadow}`}></div>
+                  <div key={idx} className={`relative h-32 md:h-40 rounded-r-3xl flex items-center px-10 transition-colors duration-200 ${containerClass} ${borderColor}`}>
+                    <div className={`absolute -left-7 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border-4 border-white/20 shadow-xl flex items-center justify-center ${config.bg}`}></div>
                     <span className="text-2xl md:text-3xl font-bold ml-6 drop-shadow-md leading-snug">{ans}</span>
                   </div>
                 );
@@ -516,10 +504,10 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
             
             {!showResult && (
               <div className="flex justify-center mt-12 space-x-12 text-white/60 text-sm uppercase tracking-[0.2em] font-bold">
-                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-red shadow-neon-red mr-3"></span> Select</div>
-                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-green shadow-neon-green mr-3"></span> Select</div>
-                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-yellow shadow-neon-yellow mr-3"></span> Select</div>
-                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-blue shadow-neon-blue mr-3"></span> Select</div>
+                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-red mr-3"></span> Select</div>
+                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-green mr-3"></span> Select</div>
+                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-yellow mr-3"></span> Select</div>
+                  <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-lg-blue mr-3"></span> Select</div>
               </div>
             )}
           </div>

@@ -13,17 +13,17 @@ export const useAudio = () => {
     // Randomize track 1-4 on mount
     const trackNum = Math.floor(Math.random() * 4) + 1;
     
-    // Initialize Music
-    const bgAudio = new Audio(`/sounds/bg-music${trackNum}.mp3`);
+    // Initialize Music with Relative Path
+    const bgAudio = new Audio(`./sounds/bg-music${trackNum}.mp3`);
     bgAudio.loop = true;
     bgAudio.volume = 0.3;
     musicRef.current = bgAudio;
 
-    // Initialize SFX
-    correctRef.current = new Audio('/sounds/correct.mp3');
+    // Initialize SFX with Relative Paths
+    correctRef.current = new Audio('./sounds/correct.mp3');
     correctRef.current.volume = 1.0;
     
-    wrongRef.current = new Audio('/sounds/wrong.mp3');
+    wrongRef.current = new Audio('./sounds/wrong.mp3');
     wrongRef.current.volume = 1.0;
 
     return () => {
@@ -51,8 +51,12 @@ export const useAudio = () => {
   const enableAudio = useCallback(() => {
     if (!audioEnabled) {
       setAudioEnabled(true);
+      // Try to start music immediately if state dictates
+      if (musicRef.current && shouldPlayMusic) {
+         musicRef.current.play().catch(e => console.warn("Audio unlock failed", e));
+      }
     }
-  }, [audioEnabled]);
+  }, [audioEnabled, shouldPlayMusic]);
 
   // Updated to receive AppState to enforce rules
   const manageMusicState = useCallback((state: AppState) => {

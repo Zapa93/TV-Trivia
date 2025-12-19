@@ -94,7 +94,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
     } else {
       const objItem = item as { query: string };
       const term = encodeURIComponent(objItem.query);
-      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=1&country=US`;
+      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
     }
 
     try {
@@ -124,34 +124,23 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
 
       if (validTracks.length === 0) continue;
 
-      let track;
-      if (!isObject) {
-        track = validTracks[Math.floor(Math.random() * validTracks.length)];
-      } else {
-        track = validTracks[0];
-      }
+      // Select a track
+      const track = validTracks[0];
 
       const uniqueId = `music-${track.trackId}`;
 
+      // CRITICAL FIX: Use metadata strictly from the API track object
+      // to ensure audio matches the text.
       let artistDisplay = '';
       let titleDisplay = '';
 
       if (isMovieCat) {
-        if (isObject) {
-           titleDisplay = (item as { title: string }).title;
-           artistDisplay = ""; 
-        } else {
-           titleDisplay = track.collectionName || "Unknown Source";
-           artistDisplay = "";
-        }
+        // For soundtracks, usually the Collection Name (Album) is the Movie Title
+        titleDisplay = track.collectionName || track.trackName || "Unknown Movie";
+        artistDisplay = ""; 
       } else {
-        if (isObject) {
-           titleDisplay = (item as { title: string }).title; 
-           artistDisplay = track.artistName;
-        } else {
-           titleDisplay = track.trackName;
-           artistDisplay = track.artistName;
-        }
+        titleDisplay = track.trackName || "Unknown Title";
+        artistDisplay = track.artistName || "Unknown Artist";
       }
 
       const newQuestion: ProcessedQuestion = {
@@ -252,7 +241,7 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
           question: qRaw.question.text,
           correct_answer: qRaw.correctAnswer,
           incorrect_answers: qRaw.incorrectAnswers,
-          all_answers: shuffle(answerPool),
+          all_answers: shuffle(answerPool), // Explicit shuffle
           isAnswered: false,
           pointValue: pointValues[i],
           mediaType: 'text',
@@ -432,7 +421,7 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
       question: "Guess the Release Year!",
       correct_answer: realYear.toString(),
       incorrect_answers: [], 
-      all_answers: Array.from(answers).sort(),
+      all_answers: shuffle(Array.from(answers)), // Shuffled instead of sorted for unpredictability
       isAnswered: false,
       pointValue: pointValues[i],
       mediaType: 'image',
