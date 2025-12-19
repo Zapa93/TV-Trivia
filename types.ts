@@ -34,6 +34,8 @@ export interface ItunesTrack {
   trackName: string;
   previewUrl: string;
   kind: string;
+  releaseDate?: string;
+  collectionName?: string;
 }
 
 export interface ProcessedQuestion {
@@ -58,6 +60,7 @@ export interface ProcessedQuestion {
   answerReveal?: {
     artist: string;
     title: string;
+    year?: string;
   };
 }
 

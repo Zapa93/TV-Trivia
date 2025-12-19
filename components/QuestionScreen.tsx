@@ -290,6 +290,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
                   </h2>
                   <h3 className="text-2xl font-semibold text-white/80">
                     {question.answerReveal?.artist}
+                    {question.answerReveal?.year && (
+                      <span className="ml-3 text-white/50 font-normal">({question.answerReveal.year})</span>
+                    )}
                   </h3>
                </div>
                

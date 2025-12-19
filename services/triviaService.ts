@@ -1,4 +1,4 @@
-import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion } from '../types';
+import { CategoryColumn, ProcessedQuestion, TriviaCategory, ApiQuestion, ItunesTrack } from '../types';
 import { 
   ARTISTS_ROCK, 
   ARTISTS_80S, 
@@ -101,12 +101,12 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       const response = await fetch(url);
       const data = await response.json();
       
-      let validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
+      let validTracks: ItunesTrack[] = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
       
       if (!isObject) {
           const searchArtist = (item as string).toLowerCase();
           
-          validTracks = validTracks.filter((t: any) => {
+          validTracks = validTracks.filter((t: ItunesTrack) => {
              const artistLower = (t.artistName || "").toLowerCase();
              const trackLower = (t.trackName || "").toLowerCase();
              const collectionLower = (t.collectionName || "").toLowerCase();
@@ -124,22 +124,36 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
 
       if (validTracks.length === 0) continue;
 
-      // Select a track
+      // Select a track - CRITICAL: Data integrity
+      // We must use the data from THIS specific track object for the answer key.
       const track = validTracks[0];
 
       const uniqueId = `music-${track.trackId}`;
 
-      // CRITICAL FIX: Use metadata strictly from the API track object
-      // to ensure audio matches the text.
-      let artistDisplay = '';
-      let titleDisplay = '';
+      // Extract Year
+      let releaseYear = "";
+      if (track.releaseDate) {
+          const dateObj = new Date(track.releaseDate);
+          if (!isNaN(dateObj.getTime())) {
+              releaseYear = dateObj.getFullYear().toString();
+          }
+      }
+
+      // Check for Manual Title Override (Only for Movie Themes)
+      const manualTitle = (isObject && (item as any).title) ? (item as any).title : null;
+
+      let titleDisplay = "";
+      let artistDisplay = "";
 
       if (isMovieCat) {
-        // For soundtracks, usually the Collection Name (Album) is the Movie Title
-        titleDisplay = track.collectionName || track.trackName || "Unknown Movie";
+        // For soundtracks, prefer the manual title (Movie Name) defined in musicData.ts
+        // fallback to Collection Name (Album), then Track Name from API
+        titleDisplay = manualTitle || track.collectionName || track.trackName || "Unknown Movie";
+        // Ensure artist comes from API track to match audio
         artistDisplay = ""; 
       } else {
-        titleDisplay = track.trackName || "Unknown Title";
+        // For standard songs, prefer manual title if exists (cleaner), else API
+        titleDisplay = manualTitle || track.trackName || "Unknown Title";
         artistDisplay = track.artistName || "Unknown Artist";
       }
 
@@ -159,7 +173,8 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         timerDuration: TIMER_DURATION,
         answerReveal: {
           artist: artistDisplay,
-          title: titleDisplay
+          title: titleDisplay,
+          year: releaseYear
         }
       };
 
@@ -232,7 +247,10 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
       if (!qRaw) qRaw = pool.find(q => !selectedQuestions.some(sq => sq.id === q.id));
 
       if (qRaw) {
+        // STRICT SHUFFLE for Multiple Choice
         const answerPool = [qRaw.correctAnswer, ...qRaw.incorrectAnswers];
+        const shuffledAnswers = shuffle(answerPool);
+
         selectedQuestions.push({
           id: qRaw.id,
           category: cat.name,
@@ -241,7 +259,7 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
           question: qRaw.question.text,
           correct_answer: qRaw.correctAnswer,
           incorrect_answers: qRaw.incorrectAnswers,
-          all_answers: shuffle(answerPool), // Explicit shuffle
+          all_answers: shuffledAnswers, 
           isAnswered: false,
           pointValue: pointValues[i],
           mediaType: 'text',
@@ -421,7 +439,7 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
       question: "Guess the Release Year!",
       correct_answer: realYear.toString(),
       incorrect_answers: [], 
-      all_answers: shuffle(Array.from(answers)), // Shuffled instead of sorted for unpredictability
+      all_answers: shuffle(Array.from(answers)), // STRICT SHUFFLE
       isAnswered: false,
       pointValue: pointValues[i],
       mediaType: 'image',
