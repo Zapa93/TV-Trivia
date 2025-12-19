@@ -48,8 +48,11 @@ export interface ProcessedQuestion {
   isAnswered: boolean;
   pointValue: number;
   // Multimedia extensions
-  mediaType: 'text' | 'audio';
+  mediaType: 'text' | 'audio' | 'image' | 'image_sequence';
   audioUrl?: string;
+  imageUrl?: string;
+  imageUrls?: string[]; // For sequences like Career Path
+  infoText?: string; // Extra context (e.g. Country Name for capital questions)
   timerDuration?: number;
   answerReveal?: {
     artist: string;

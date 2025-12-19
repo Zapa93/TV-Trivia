@@ -1368,3 +1368,559 @@ export const MOVIE_THEMES = [
   { query: "SpongeBob SquarePants Theme Song", title: "SpongeBob SquarePants" },
   { query: "Lin-Manuel Miranda We Don't Talk About Bruno", title: "Encanto" }
 ];
+export const FOOTBALL_CAREERS = [
+  // --- LEVEL 1: THE SUPERSTARS (Very Easy) ---
+  {
+    player: "Kylian Mbappé",
+    difficulty: 1,
+    clubs: ["Monaco", "Paris Saint Germain", "Real Madrid"]
+  },
+  {
+    player: "Erling Haaland",
+    difficulty: 1,
+    clubs: ["Molde", "Red Bull Salzburg", "Borussia Dortmund", "Manchester City"]
+  },
+  {
+    player: "Karim Benzema",
+    difficulty: 1,
+    clubs: ["Lyon", "Real Madrid", "Al-Ittihad"]
+  },
+  {
+    player: "Kaka",
+    difficulty: 1,
+    clubs: ["Sao Paulo", "AC Milan", "Real Madrid", "AC Milan", "Orlando City"]
+  },
+  {
+    player: "Gianluigi Buffon",
+    difficulty: 1,
+    clubs: ["Parma", "Juventus", "Paris Saint Germain", "Juventus", "Parma"]
+  },
+  {
+    player: "Luka Modrić",
+    difficulty: 1,
+    clubs: ["Dinamo Zagreb", "Tottenham Hotspur", "Real Madrid"]
+  },
+  {
+    player: "Manuel Neuer",
+    difficulty: 1,
+    clubs: ["Schalke 04", "Bayern Munich"]
+  },
+  {
+    player: "Frank Lampard",
+    difficulty: 1,
+    clubs: ["West Ham United", "Chelsea", "Manchester City", "New York City FC"]
+  },
+  {
+    player: "Steven Gerrard",
+    difficulty: 1,
+    clubs: ["Liverpool", "LA Galaxy"]
+  },
+  {
+    player: "Sergio Agüero",
+    difficulty: 1,
+    clubs: ["Independiente", "Atletico Madrid", "Manchester City", "Barcelona"]
+  },
+  {
+    player: "Zlatan Ibrahimović",
+    difficulty: 1,
+    clubs: ["Malmo FF", "Ajax", "Juventus", "Inter Milan", "Barcelona", "AC Milan", "Paris Saint Germain", "Manchester United", "LA Galaxy", "AC Milan"]
+  },
+  {
+    player: "Cristiano Ronaldo",
+    difficulty: 1,
+    clubs: ["Sporting CP", "Manchester United", "Real Madrid", "Juventus", "Manchester United", "Al Nassr"]
+  },
+  {
+    player: "Lionel Messi",
+    difficulty: 1,
+    clubs: ["Barcelona", "Paris Saint Germain", "Inter Miami"]
+  },
+  {
+    player: "Neymar",
+    difficulty: 1,
+    clubs: ["Santos", "Barcelona", "Paris Saint Germain", "Al Hilal"]
+  },
+  {
+    player: "David Beckham",
+    difficulty: 1,
+    clubs: ["Manchester United", "Preston North End", "Real Madrid", "LA Galaxy", "AC Milan", "Paris Saint Germain"]
+  },
+  {
+    player: "Thierry Henry",
+    difficulty: 1,
+    clubs: ["Monaco", "Juventus", "Arsenal", "Barcelona", "New York Red Bulls"]
+  },
+  {
+    player: "Wayne Rooney",
+    difficulty: 1,
+    clubs: ["Everton", "Manchester United", "Everton", "DC United", "Derby County"]
+  },
+  {
+    player: "Ronaldinho",
+    difficulty: 1,
+    clubs: ["Gremio", "Paris Saint Germain", "Barcelona", "AC Milan", "Flamengo", "Atletico Mineiro", "Queretaro", "Fluminense"]
+  },
+  {
+    player: "Ronaldo Nazário",
+    difficulty: 1,
+    clubs: ["Cruzeiro", "PSV Eindhoven", "Barcelona", "Inter Milan", "Real Madrid", "AC Milan", "Corinthians"]
+  },
+
+  // --- LEVEL 2: LEGENDS & STARS (Easy) ---
+  {
+    player: "Patrick Vieira",
+    difficulty: 2,
+    clubs: ["Cannes", "AC Milan", "Arsenal", "Juventus", "Inter Milan", "Manchester City"]
+  },
+  {
+    player: "Petr Čech",
+    difficulty: 2,
+    clubs: ["Rennes", "Chelsea", "Arsenal"]
+  },
+  {
+    player: "Rio Ferdinand",
+    difficulty: 2,
+    clubs: ["West Ham United", "Leeds United", "Manchester United", "Queens Park Rangers"]
+  },
+  {
+    player: "Iker Casillas",
+    difficulty: 2,
+    clubs: ["Real Madrid", "Porto"]
+  },
+  {
+    player: "Dani Alves",
+    difficulty: 2,
+    clubs: ["Sevilla", "Barcelona", "Juventus", "Paris Saint Germain", "Sao Paulo", "Pumas UNAM"]
+  },
+  {
+    player: "Ruud van Nistelrooy",
+    difficulty: 2,
+    clubs: ["PSV Eindhoven", "Manchester United", "Real Madrid", "Hamburg", "Malaga"]
+  },
+  {
+    player: "Fabio Cannavaro",
+    difficulty: 2,
+    clubs: ["Parma", "Inter Milan", "Juventus", "Real Madrid", "Juventus", "Al Ahli"]
+  },
+  {
+    player: "Roberto Carlos",
+    difficulty: 2,
+    clubs: ["Inter Milan", "Real Madrid", "Fenerbahce", "Corinthians", "Anzhi Makhachkala"]
+  },
+  {
+    player: "Rivaldo",
+    difficulty: 2,
+    clubs: ["Deportivo La Coruna", "Barcelona", "AC Milan", "Olympiacos", "AEK Athens"]
+  },
+  {
+    player: "Cafu",
+    difficulty: 2,
+    clubs: ["Real Zaragoza", "Palmeiras", "Roma", "AC Milan"]
+  },
+  {
+    player: "Gareth Bale",
+    difficulty: 2,
+    clubs: ["Southampton", "Tottenham Hotspur", "Real Madrid", "Tottenham Hotspur", "Los Angeles FC"]
+  },
+  {
+    player: "Luis Suárez",
+    difficulty: 2,
+    clubs: ["Nacional", "Groningen", "Ajax", "Liverpool", "Barcelona", "Atletico Madrid", "Gremio", "Inter Miami"]
+  },
+  {
+    player: "Robert Lewandowski",
+    difficulty: 2,
+    clubs: ["Lech Poznan", "Borussia Dortmund", "Bayern Munich", "Barcelona"]
+  },
+  {
+    player: "Eden Hazard",
+    difficulty: 2,
+    clubs: ["Lille", "Chelsea", "Real Madrid"]
+  },
+  {
+    player: "Sergio Ramos",
+    difficulty: 2,
+    clubs: ["Sevilla", "Real Madrid", "Paris Saint Germain", "Sevilla"]
+  },
+  {
+    player: "Zinedine Zidane",
+    difficulty: 2,
+    clubs: ["Cannes", "Bordeaux", "Juventus", "Real Madrid"]
+  },
+  {
+    player: "Andrea Pirlo",
+    difficulty: 2,
+    clubs: ["Brescia", "Inter Milan", "AC Milan", "Juventus", "New York City FC"]
+  },
+  {
+    player: "Luís Figo",
+    difficulty: 2,
+    clubs: ["Sporting CP", "Barcelona", "Real Madrid", "Inter Milan"]
+  },
+  {
+    player: "Xabi Alonso",
+    difficulty: 2,
+    clubs: ["Real Sociedad", "Eibar", "Liverpool", "Real Madrid", "Bayern Munich"]
+  },
+  {
+    player: "Cesc Fàbregas",
+    difficulty: 2,
+    clubs: ["Arsenal", "Barcelona", "Chelsea", "Monaco", "Como"]
+  },
+
+  // --- LEVEL 3: THE 2000-2015 ICONS (Medium) ---
+  {
+    player: "Henrik Larsson",
+    difficulty: 3,
+    clubs: ["Feyenoord", "Celtic", "Barcelona", "Helsingborgs IF", "Manchester United"]
+  },
+  {
+    player: "Michael Ballack",
+    difficulty: 3,
+    clubs: ["Kaiserslautern", "Bayer Leverkusen", "Bayern Munich", "Chelsea", "Bayer Leverkusen"]
+  },
+  {
+    player: "Clarence Seedorf",
+    difficulty: 3,
+    clubs: ["Ajax", "Sampdoria", "Real Madrid", "Inter Milan", "AC Milan", "Botafogo"]
+  },
+  {
+    player: "Edwin van der Sar",
+    difficulty: 3,
+    clubs: ["Ajax", "Juventus", "Fulham", "Manchester United"]
+  },
+  {
+    player: "Patrick Kluivert",
+    difficulty: 3,
+    clubs: ["Ajax", "AC Milan", "Barcelona", "Newcastle United", "Valencia", "PSV Eindhoven", "Lille"]
+  },
+  {
+    player: "Sol Campbell",
+    difficulty: 3,
+    clubs: ["Tottenham Hotspur", "Arsenal", "Portsmouth", "Notts County", "Newcastle United"]
+  },
+  {
+    player: "Robert Pires",
+    difficulty: 3,
+    clubs: ["Metz", "Marseille", "Arsenal", "Villarreal", "Aston Villa", "Goa"]
+  },
+  {
+    player: "Vincent Kompany",
+    difficulty: 3,
+    clubs: ["Anderlecht", "Hamburg", "Manchester City", "Anderlecht"]
+  },
+  {
+    player: "David Silva",
+    difficulty: 3,
+    clubs: ["Valencia", "Manchester City", "Real Sociedad"]
+  },
+  {
+    player: "Nemanja Vidic",
+    difficulty: 3,
+    clubs: ["Spartak Moscow", "Manchester United", "Inter Milan"]
+  },
+  {
+    player: "Arjen Robben",
+    difficulty: 3,
+    clubs: ["Groningen", "PSV Eindhoven", "Chelsea", "Real Madrid", "Bayern Munich"]
+  },
+  {
+    player: "Samuel Eto'o",
+    difficulty: 3,
+    clubs: ["Real Madrid", "Mallorca", "Barcelona", "Inter Milan", "Anzhi Makhachkala", "Chelsea", "Everton", "Sampdoria"]
+  },
+  {
+    player: "Carlos Tevez",
+    difficulty: 3,
+    clubs: ["Boca Juniors", "Corinthians", "West Ham United", "Manchester United", "Manchester City", "Juventus", "Boca Juniors", "Shanghai Shenhua"]
+  },
+  {
+    player: "Fernando Torres",
+    difficulty: 3,
+    clubs: ["Atletico Madrid", "Liverpool", "Chelsea", "AC Milan", "Atletico Madrid", "Sagan Tosu"]
+  },
+  {
+    player: "Robin van Persie",
+    difficulty: 3,
+    clubs: ["Feyenoord", "Arsenal", "Manchester United", "Fenerbahce"]
+  },
+  {
+    player: "Michael Owen",
+    difficulty: 3,
+    clubs: ["Liverpool", "Real Madrid", "Newcastle United", "Manchester United", "Stoke City"]
+  },
+  {
+    player: "Bastian Schweinsteiger",
+    difficulty: 3,
+    clubs: ["Bayern Munich", "Manchester United", "Chicago Fire"]
+  },
+  {
+    player: "Didier Drogba",
+    difficulty: 3,
+    clubs: ["Guingamp", "Marseille", "Chelsea", "Shanghai Shenhua", "Galatasaray", "Montreal Impact"]
+  },
+  {
+    player: "Yaya Touré",
+    difficulty: 3,
+    clubs: ["Beveren", "Metalurh Donetsk", "Olympiacos", "Monaco", "Barcelona", "Manchester City"]
+  },
+  {
+    player: "Gerard Piqué",
+    difficulty: 3,
+    clubs: ["Manchester United", "Real Zaragoza", "Barcelona"]
+  },
+  {
+    player: "Wesley Sneijder",
+    difficulty: 3,
+    clubs: ["Ajax", "Real Madrid", "Inter Milan", "Galatasaray", "Nice", "Al-Gharafa"]
+  },
+  {
+    player: "Miroslav Klose",
+    difficulty: 3,
+    clubs: ["Kaiserslautern", "Werder Bremen", "Bayern Munich", "Lazio"]
+  },
+  {
+    player: "Claude Makélélé",
+    difficulty: 3,
+    clubs: ["Nantes", "Marseille", "Celta Vigo", "Real Madrid", "Chelsea", "Paris Saint Germain"]
+  },
+
+  // --- LEVEL 4: CULT HEROES & TRAVELERS (Hard) ---
+  {
+    player: "Eidur Gudjohnsen",
+    difficulty: 4,
+    clubs: ["Bolton", "Chelsea", "Barcelona", "Monaco", "Tottenham Hotspur", "Stoke City", "Fulham", "AEK Athens", "Club Brugge", "Molde"]
+  },
+  {
+    player: "Jermain Defoe",
+    difficulty: 4,
+    clubs: ["West Ham United", "Tottenham Hotspur", "Portsmouth", "Tottenham Hotspur", "Toronto FC", "Sunderland", "Bournemouth", "Rangers"]
+  },
+  {
+    player: "Alexis Sánchez",
+    difficulty: 4,
+    clubs: ["Udinese", "Barcelona", "Arsenal", "Manchester United", "Inter Milan", "Marseille", "Inter Milan", "Udinese"]
+  },
+  {
+    player: "Mesut Özil",
+    difficulty: 4,
+    clubs: ["Schalke 04", "Werder Bremen", "Real Madrid", "Arsenal", "Fenerbahce", "Istanbul Basaksehir"]
+  },
+  {
+    player: "Pierre-Emerick Aubameyang",
+    difficulty: 4,
+    clubs: ["AC Milan", "Saint-Etienne", "Borussia Dortmund", "Arsenal", "Barcelona", "Chelsea", "Marseille", "Al Qadsiah"]
+  },
+  {
+    player: "Radamel Falcao",
+    difficulty: 4,
+    clubs: ["River Plate", "Porto", "Atletico Madrid", "Monaco", "Manchester United", "Chelsea", "Galatasaray", "Rayo Vallecano", "Millonarios"]
+  },
+  {
+    player: "Gonzalo Higuaín",
+    difficulty: 4,
+    clubs: ["River Plate", "Real Madrid", "Napoli", "Juventus", "AC Milan", "Chelsea", "Inter Miami"]
+  },
+  {
+    player: "Philippe Coutinho",
+    difficulty: 4,
+    clubs: ["Inter Milan", "Espanyol", "Liverpool", "Barcelona", "Bayern Munich", "Aston Villa", "Al-Duhail", "Vasco da Gama"]
+  },
+  {
+    player: "Antonio Cassano",
+    difficulty: 4,
+    clubs: ["Bari", "Roma", "Real Madrid", "Sampdoria", "AC Milan", "Inter Milan", "Parma", "Sampdoria"]
+  },
+  {
+    player: "Robbie Fowler",
+    difficulty: 4,
+    clubs: ["Liverpool", "Leeds United", "Manchester City", "Liverpool", "Cardiff City", "Blackburn Rovers", "North Queensland Fury", "Perth Glory"]
+  },
+  {
+    player: "Nicolas Anelka",
+    difficulty: 4,
+    clubs: ["Paris Saint Germain", "Arsenal", "Real Madrid", "Liverpool", "Manchester City", "Fenerbahce", "Bolton", "Chelsea", "Shanghai Shenhua", "Juventus", "West Bromwich"]
+  },
+  {
+    player: "Hernán Crespo",
+    difficulty: 4,
+    clubs: ["River Plate", "Parma", "Lazio", "Inter Milan", "Chelsea", "AC Milan", "Genoa", "Parma"]
+  },
+  {
+    player: "Edgar Davids",
+    difficulty: 4,
+    clubs: ["Ajax", "AC Milan", "Juventus", "Barcelona", "Inter Milan", "Tottenham Hotspur", "Crystal Palace", "Barnet"]
+  },
+  {
+    player: "Deco",
+    difficulty: 4,
+    clubs: ["Corinthians", "Alverca", "Salgueiros", "Porto", "Barcelona", "Chelsea", "Fluminense"]
+  },
+  {
+    player: "Dimitar Berbatov",
+    difficulty: 4,
+    clubs: ["CSKA Sofia", "Bayer Leverkusen", "Tottenham Hotspur", "Manchester United", "Fulham", "Monaco", "PAOK"]
+  },
+  {
+    player: "Juan Mata",
+    difficulty: 4,
+    clubs: ["Real Madrid Castilla", "Valencia", "Chelsea", "Manchester United", "Galatasaray", "Vissel Kobe"]
+  },
+  {
+    player: "Diego Forlán",
+    difficulty: 4,
+    clubs: ["Independiente", "Manchester United", "Villarreal", "Atletico Madrid", "Inter Milan", "Internacional", "Cerezo Osaka", "Penarol"]
+  },
+  {
+    player: "Patrice Evra",
+    difficulty: 4,
+    clubs: ["Marsala", "Monza", "Nice", "Monaco", "Manchester United", "Juventus", "Marseille", "West Ham United"]
+  },
+  {
+    player: "Rafael van der Vaart",
+    difficulty: 4,
+    clubs: ["Ajax", "Hamburg", "Real Madrid", "Tottenham Hotspur", "Hamburg", "Real Betis", "Midtjylland"]
+  },
+  {
+    player: "Javier Mascherano",
+    difficulty: 4,
+    clubs: ["River Plate", "Corinthians", "West Ham United", "Liverpool", "Barcelona", "Hebei China Fortune", "Estudiantes"]
+  },
+  {
+    player: "Mario Balotelli",
+    difficulty: 4,
+    clubs: ["Inter Milan", "Manchester City", "AC Milan", "Liverpool", "Nice", "Marseille", "Brescia", "Monza", "Adana Demirspor", "Sion"]
+  },
+  {
+    player: "James Rodríguez",
+    difficulty: 4,
+    clubs: ["Envigado", "Banfield", "Porto", "Monaco", "Real Madrid", "Bayern Munich", "Everton", "Al-Rayyan", "Olympiacos", "Sao Paulo", "Rayo Vallecano"]
+  },
+  {
+    player: "Ashley Cole",
+    difficulty: 4,
+    clubs: ["Arsenal", "Crystal Palace", "Chelsea", "Roma", "LA Galaxy", "Derby County"]
+  },
+  {
+    player: "Angel Di Maria",
+    difficulty: 4,
+    clubs: ["Rosario Central", "Benfica", "Real Madrid", "Manchester United", "Paris Saint Germain", "Juventus", "Benfica"]
+  },
+
+  // --- LEVEL 5: THE JOURNEYMEN & TRICKY ONES (Expert) ---
+  {
+    player: "Javier Saviola",
+    difficulty: 5,
+    clubs: ["River Plate", "Barcelona", "Monaco", "Sevilla", "Real Madrid", "Benfica", "Malaga", "Olympiacos", "Verona", "River Plate"]
+  },
+  {
+    player: "William Gallas",
+    difficulty: 5,
+    clubs: ["Caen", "Marseille", "Chelsea", "Arsenal", "Tottenham Hotspur", "Perth Glory"]
+  },
+  {
+    player: "John Carew",
+    difficulty: 5,
+    clubs: ["Valerenga", "Rosenborg", "Valencia", "Roma", "Besiktas", "Lyon", "Aston Villa", "Stoke City", "West Ham United"]
+  },
+  {
+    player: "Obafemi Martins",
+    difficulty: 5,
+    clubs: ["Inter Milan", "Newcastle United", "Wolfsburg", "Rubin Kazan", "Birmingham City", "Levante", "Seattle Sounders", "Shanghai Shenhua"]
+  },
+  {
+    player: "Maicon",
+    difficulty: 5,
+    clubs: ["Cruzeiro", "Monaco", "Inter Milan", "Manchester City", "Roma", "Avai", "Criciuma"]
+  },
+  {
+    player: "Lúcio",
+    difficulty: 5,
+    clubs: ["Internacional", "Bayer Leverkusen", "Bayern Munich", "Inter Milan", "Juventus", "Sao Paulo", "Palmeiras"]
+  },
+  {
+    player: "Diego Ribas",
+    difficulty: 5,
+    clubs: ["Santos", "Porto", "Werder Bremen", "Juventus", "Wolfsburg", "Atletico Madrid", "Fenerbahce", "Flamengo"]
+  },
+  {
+    player: "Simão Sabrosa",
+    difficulty: 5,
+    clubs: ["Sporting CP", "Barcelona", "Benfica", "Atletico Madrid", "Besiktas", "Espanyol"]
+  },
+  {
+    player: "Rafael Márquez",
+    difficulty: 5,
+    clubs: ["Atlas", "Monaco", "Barcelona", "New York Red Bulls", "Leon", "Verona", "Atlas"]
+  },
+  {
+    player: "Alexander Hleb",
+    difficulty: 5,
+    clubs: ["Stuttgart", "Arsenal", "Barcelona", "Birmingham City", "Wolfsburg", "Krylia Sovetov", "BATE Borisov", "Konyaspor", "Genclerbirligi"]
+  },
+  {
+    player: "Kevin-Prince Boateng",
+    difficulty: 5,
+    clubs: ["Hertha BSC", "Tottenham Hotspur", "Dortmund", "Portsmouth", "AC Milan", "Schalke 04", "Las Palmas", "Eintracht Frankfurt", "Sassuolo", "Barcelona", "Fiorentina", "Besiktas", "Monza"]
+  },
+  {
+    player: "Robbie Keane",
+    difficulty: 5,
+    clubs: ["Wolves", "Coventry City", "Inter Milan", "Leeds United", "Tottenham Hotspur", "Liverpool", "Celtic", "West Ham United", "LA Galaxy", "Aston Villa"]
+  },
+  {
+    player: "Christian Vieri",
+    difficulty: 5,
+    clubs: ["Torino", "Pisa", "Ravenna", "Venezia", "Atalanta", "Juventus", "Atletico Madrid", "Lazio", "Inter Milan", "AC Milan", "Monaco", "Fiorentina"]
+  },
+  {
+    player: "Luca Toni",
+    difficulty: 5,
+    clubs: ["Modena", "Empoli", "Fiorentzuola", "Treviso", "Vicenza", "Brescia", "Palermo", "Fiorentina", "Bayern Munich", "Roma", "Genoa", "Juventus", "Al Nasr", "Verona"]
+  },
+  {
+    player: "Emmanuel Adebayor",
+    difficulty: 5,
+    clubs: ["Metz", "Monaco", "Arsenal", "Manchester City", "Real Madrid", "Tottenham Hotspur", "Crystal Palace", "Istanbul Basaksehir", "Olimpia"]
+  },
+  {
+    player: "Craig Bellamy",
+    difficulty: 5,
+    clubs: ["Norwich City", "Coventry City", "Newcastle United", "Celtic", "Blackburn Rovers", "Liverpool", "West Ham United", "Manchester City", "Cardiff City"]
+  },
+  {
+    player: "Peter Crouch",
+    difficulty: 5,
+    clubs: ["Tottenham Hotspur", "QPR", "Portsmouth", "Aston Villa", "Norwich City", "Southampton", "Liverpool", "Stoke City", "Burnley"]
+  },
+  {
+    player: "Djibril Cissé",
+    difficulty: 5,
+    clubs: ["Auxerre", "Liverpool", "Marseille", "Sunderland", "Panathinaikos", "Lazio", "QPR", "Al-Gharafa", "Kuban Krasnodar", "Bastia"]
+  },
+  {
+    player: "Lassana Diarra",
+    difficulty: 5,
+    clubs: ["Le Havre", "Chelsea", "Arsenal", "Portsmouth", "Real Madrid", "Anzhi Makhachkala", "Lokomotiv Moscow", "Marseille", "Al Jazira", "Paris Saint Germain"]
+  },
+  {
+    player: "Hatem Ben Arfa",
+    difficulty: 5,
+    clubs: ["Lyon", "Marseille", "Newcastle United", "Hull City", "Nice", "Paris Saint Germain", "Rennes", "Valladolid", "Bordeaux", "Lille"]
+  },
+  {
+    player: "Pepe Reina",
+    difficulty: 5,
+    clubs: ["Barcelona", "Villarreal", "Liverpool", "Napoli", "Bayern Munich", "AC Milan", "Aston Villa", "Lazio", "Villarreal", "Como"]
+  },
+  {
+    player: "Ricardo Quaresma",
+    difficulty: 5,
+    clubs: ["Sporting CP", "Barcelona", "Porto", "Inter Milan", "Chelsea", "Besiktas", "Al-Ahli", "Kasimpasa", "Vitoria Guimaraes"]
+  },
+  {
+    player: "Alvaro Morata",
+    difficulty: 5,
+    clubs: ["Real Madrid", "Juventus", "Real Madrid", "Chelsea", "Atletico Madrid", "Juventus", "Atletico Madrid", "AC Milan"]
+  }
+];
