@@ -35,20 +35,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const currentPlayer = players[currentPlayerIndex];
 
   return (
-    <div className="h-screen w-screen flex flex-col p-8 box-border z-10">
+    <div className="h-screen w-screen flex flex-col p-8 box-border z-10 bg-slate-950">
       
       {/* Top Bar */}
       <div className="flex justify-between items-center mb-6 px-4 h-16">
-        <h1 className="text-4xl font-black italic tracking-tighter text-yellow-400 drop-shadow-[2px_4px_0_rgba(0,0,0,0.8)] transform -skew-x-6">
+        <h1 className="text-4xl font-black italic tracking-tighter text-yellow-400">
           TRIVIA NIGHT
         </h1>
         
         {/* Current Player Badge */}
-        <div className="px-8 py-2 rounded-xl border-2 border-yellow-400 bg-blue-950 shadow-lg flex items-center space-x-4">
-           <span className="text-3xl animate-bounce">{currentPlayer.avatar}</span>
+        <div className="px-8 py-2 rounded-xl border-2 border-yellow-400 bg-blue-950 flex items-center space-x-4">
+           <span className="text-3xl">{currentPlayer.avatar}</span>
            <div className="flex flex-col items-start">
              <span className="text-xs font-bold text-yellow-500 uppercase tracking-wider">Current Turn</span>
-             <span className="text-xl font-black text-white drop-shadow-md">{currentPlayer.name}</span>
+             <span className="text-xl font-black text-white">{currentPlayer.name}</span>
            </div>
         </div>
       </div>
@@ -63,20 +63,17 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           const isMusic = col.questions[0]?.type === 'music';
           
           // Styles based on Type
-          const headerBorder = isMusic ? 'border-fuchsia-400' : 'border-yellow-500';
+          const headerBorder = isMusic ? 'border-fuchsia-600' : 'border-yellow-600';
           const headerText = isMusic ? 'text-fuchsia-300' : 'text-yellow-400';
-          const headerBg = isMusic ? 'bg-purple-900/90' : 'bg-blue-900/90';
+          const headerBg = isMusic ? 'bg-fuchsia-950' : 'bg-blue-950';
           
-          const cellGradient = isMusic 
-             ? 'bg-gradient-to-br from-fuchsia-700 to-purple-800' 
-             : 'bg-gradient-to-br from-blue-600 to-indigo-700';
+          const cellColor = isMusic ? 'bg-fuchsia-900' : 'bg-blue-800';
 
           return (
             <div key={cIdx} className="flex flex-col gap-4 h-full">
               {/* Category Header Box */}
-              <div className={`h-28 rounded-xl border-2 ${headerBorder} ${headerBg} flex items-center justify-center p-2 shadow-lg relative overflow-hidden group`}>
-                 <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-                 <h3 className={`relative z-10 font-black text-sm lg:text-xl leading-tight uppercase ${headerText} text-center break-words w-full drop-shadow-md line-clamp-3`}>
+              <div className={`h-28 rounded-xl border-2 ${headerBorder} ${headerBg} flex items-center justify-center p-2 relative overflow-hidden`}>
+                 <h3 className={`font-black text-sm lg:text-xl leading-tight uppercase ${headerText} text-center break-words w-full line-clamp-3`}>
                    {col.title}
                  </h3>
               </div>
@@ -89,19 +86,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                      <div 
                        key={q.id}
                        className={`
-                         flex-1 rounded-xl flex items-center justify-center relative shadow-[0_4px_10px_rgba(0,0,0,0.3)] transition-all duration-200
+                         flex-1 rounded-xl flex items-center justify-center relative transition-transform duration-150
                          ${q.isAnswered
-                           ? 'bg-blue-950/80 border-2 border-white/5 opacity-50'
-                           : cellGradient
+                           ? 'bg-slate-900 border-2 border-slate-800 opacity-40'
+                           : cellColor
                          }
                          ${isFocused 
-                            ? 'scale-105 z-20 ring-4 ring-white shadow-glow brightness-110'
-                            : 'hover:brightness-105'
+                            ? 'scale-105 z-20 border-4 border-white shadow-xl brightness-110'
+                            : ''
                          }
                        `}
                      >
                        {!q.isAnswered && (
-                         <span className={`font-black text-3xl lg:text-5xl text-white/90 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] ${isFocused ? 'scale-110' : ''}`}>
+                         <span className={`font-black text-3xl lg:text-5xl text-white/90`}>
                            ${q.pointValue}
                          </span>
                        )}
@@ -123,17 +120,17 @@ export const GameBoard: React.FC<GameBoardProps> = ({
              <div 
                key={p.id}
                className={`
-                 px-6 py-3 rounded-lg border-2 flex flex-col items-center min-w-[140px] transition-all duration-300
+                 px-6 py-3 rounded-lg border-2 flex flex-col items-center min-w-[140px]
                  ${idx === currentPlayerIndex 
-                   ? 'bg-blue-800 border-yellow-400 transform -translate-y-2 shadow-[0_0_20px_rgba(250,204,21,0.4)]' 
-                   : 'bg-blue-950/60 border-blue-900 text-gray-400'}
+                   ? 'bg-blue-800 border-yellow-400 transform -translate-y-2' 
+                   : 'bg-slate-900 border-slate-700 text-gray-400'}
                `}
              >
                 <div className="flex items-center space-x-2 text-sm font-bold mb-1 opacity-90">
                   <span className="text-xl">{p.avatar}</span>
                   <span className="uppercase tracking-wider">{p.name}</span>
                 </div>
-                <span className={`text-3xl font-black ${p.score < 0 ? 'text-red-400' : 'text-white'} drop-shadow-md`}>
+                <span className={`text-3xl font-black ${p.score < 0 ? 'text-red-400' : 'text-white'}`}>
                   ${p.score}
                 </span>
              </div>

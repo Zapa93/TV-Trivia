@@ -35,12 +35,10 @@
         theme: {
           extend: {
             colors: {
-              'magic-bg': '#2e1065', // dark purple base
+              'magic-bg': '#0f172a',
               'magic-purple': '#7c3aed',
               'magic-pink': '#d946ef',
               'magic-cyan': '#06b6d4',
-              'glass-panel': 'rgba(255, 255, 255, 0.1)',
-              'glass-border': 'rgba(255, 255, 255, 0.2)',
               'lg-red': '#ff4444',
               'lg-green': '#00e676',
               'lg-yellow': '#ffea00',
@@ -49,45 +47,8 @@
             fontFamily: {
               sans: ['Montserrat', 'sans-serif'],
             },
-            backgroundImage: {
-              'magic-gradient': 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #701a75 100%)',
-              'card-gradient': 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-            },
             boxShadow: {
-              'glow': '0 0 20px rgba(217, 70, 239, 0.3)',
-              'glow-strong': '0 0 30px rgba(6, 182, 212, 0.5)',
-              'neon-red': '0 0 20px rgba(255, 68, 68, 0.6)',
-              'neon-green': '0 0 20px rgba(0, 230, 118, 0.6)',
-              'neon-yellow': '0 0 20px rgba(255, 234, 0, 0.6)',
-              'neon-blue': '0 0 20px rgba(41, 121, 255, 0.6)',
-            },
-            animation: {
-              'float': 'float 6s ease-in-out infinite',
-              'float-delayed': 'float 6s ease-in-out 3s infinite',
-              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-              'zoom-in': 'zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'shimmer': 'shimmer 2s linear infinite',
-            },
-            keyframes: {
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-15px)' },
-              },
-              shake: {
-                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
-              },
-              zoomIn: {
-                '0%': { opacity: '0', transform: 'scale(0.8)' },
-                '100%': { opacity: '1', transform: 'scale(1)' }
-              },
-              shimmer: {
-                '0%': { backgroundPosition: '-200% 0' },
-                '100%': { backgroundPosition: '200% 0' }
-              }
+              'glow': '0 0 10px rgba(217, 70, 239, 0.2)',
             }
           }
         }
@@ -95,7 +56,7 @@
     </script>
     <style>
       body {
-        background: #1e1b4b; /* Fallback */
+        background: #0f172a;
         color: #ffffff;
         overflow: hidden;
         user-select: none;
@@ -105,32 +66,28 @@
       .bg-main {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, #0f172a 0%, #312e81 40%, #4c1d95 80%, #be185d 100%);
+        background: #0f172a;
         z-index: -2;
       }
       
+      /* Solid panels instead of glass/blur for performance */
       .glass-panel {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        background: #1e293b; /* Slate 800 */
+        border: 2px solid #334155; /* Slate 700 */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .glass-panel-active {
+        background: #1e293b;
+        border: 4px solid #fbbf24;
       }
       
       .tv-focus {
-        transform: scale(1.05);
-        border-color: #06b6d4 !important; /* Cyan */
-        background: rgba(255, 255, 255, 0.2) !important;
-        box-shadow: 0 0 25px #06b6d4, inset 0 0 10px rgba(6, 182, 212, 0.5) !important;
+        transform: scale(1.02);
+        border-color: #fbbf24 !important; /* Amber 400 */
+        background: #334155 !important; /* Slate 700 */
+        box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5) !important;
         z-index: 50;
-      }
-      
-      .floating-orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        opacity: 0.6;
-        animation: float 10s infinite ease-in-out;
       }
     </style>
   <script type="importmap">
@@ -149,9 +106,5 @@
   <body>
     <div id="root"></div>
     <div class="bg-main"></div>
-    <!-- Ambient Orbs -->
-    <div class="floating-orb bg-purple-600 w-96 h-96 top-0 left-0 animate-float"></div>
-    <div class="floating-orb bg-pink-600 w-80 h-80 bottom-0 right-0 animate-float-delayed"></div>
-    <div class="floating-orb bg-blue-600 w-64 h-64 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
   </body>
 </html>

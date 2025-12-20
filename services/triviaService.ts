@@ -9,12 +9,13 @@ import {
   MOVIE_THEMES,
   FOOTBALL_CAREERS
 } from './musicData';
+import { decodeHtml } from '../utils/helpers';
 
-const TRIVIA_API_URL = 'https://the-trivia-api.com/v2/questions';
+const OPENTDB_API_URL = 'https://opentdb.com/api.php';
 const ITUNES_API_URL = 'https://itunes.apple.com/search';
+const ITUNES_LOOKUP_URL = 'https://itunes.apple.com/lookup';
 const REST_COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,flags,capital,population';
 const TMDB_API_URL = 'https://api.themoviedb.org/3/discover/movie';
-const SPORTS_DB_URL = 'https://www.thesportsdb.com/api/v1/json/3/searchteams.php';
 
 const PLAYED_ITEMS_KEY = 'trivia_played_items_v2';
 
@@ -58,7 +59,33 @@ const shuffle = <T>(array: T[]): T[] => {
   return newArray;
 };
 
-type MusicItem = string | { query: string; title: string };
+const getOpenTDBCategoryId = (id: string): number => {
+  const map: Record<string, number> = {
+    'otdb_general': 9,
+    'otdb_film': 11,
+    'otdb_music': 12,
+    'otdb_tv': 14,
+    'otdb_videogames': 15,
+    'otdb_cartoons': 32,
+    'otdb_science': 17,
+    'otdb_computers': 18,
+    'otdb_math': 19,
+    'otdb_gadgets': 30,
+    'otdb_mythology': 20,
+    'otdb_sports': 21,
+    'otdb_geography': 22,
+    'otdb_history': 23,
+    'otdb_politics': 24,
+    'otdb_art': 25,
+    'otdb_celebs': 26,
+    'otdb_animals': 27,
+    'otdb_vehicles': 28
+  };
+  return map[id] || 9;
+};
+
+// Updated Type to support ID-based items
+type MusicItem = string | { query: string; title: string } | { title: string; id: number };
 
 interface Country {
   name: { common: string };
@@ -86,46 +113,60 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
     if (questions.length >= 5) break;
 
     let url = '';
-    const isObject = typeof item !== 'string';
-    
-    if (!isObject) {
-      const term = encodeURIComponent(item as string);
-      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=25&country=US`;
+    let manualTitle: string | null = null;
+    let isIdLookup = false;
+
+    // Determine if Item is String, Query Object, or ID Object
+    if (typeof item === 'string') {
+        const term = encodeURIComponent(item);
+        url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=25&country=US`;
+    } else if ('id' in item) {
+        // ID Based Lookup (Movie Themes)
+        isIdLookup = true;
+        url = `${ITUNES_LOOKUP_URL}?id=${item.id}&country=US`;
+        manualTitle = item.title;
     } else {
-      const objItem = item as { query: string };
-      const term = encodeURIComponent(objItem.query);
-      url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
+        // Query Based Object
+        const term = encodeURIComponent(item.query);
+        url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
+        manualTitle = item.title;
     }
 
     try {
       const response = await fetch(url);
       const data = await response.json();
       
-      let validTracks: ItunesTrack[] = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
-      
-      if (!isObject) {
-          const searchArtist = (item as string).toLowerCase();
-          
-          validTracks = validTracks.filter((t: ItunesTrack) => {
-             const artistLower = (t.artistName || "").toLowerCase();
-             const trackLower = (t.trackName || "").toLowerCase();
-             const collectionLower = (t.collectionName || "").toLowerCase();
+      let validTracks: ItunesTrack[] = [];
 
-             if (!artistLower.includes(searchArtist)) return false;
+      if (isIdLookup) {
+          // For Lookup, we trust the ID, just check for previewUrl
+          validTracks = (data.results || []).filter((t: any) => t.previewUrl);
+      } else {
+          // For Search, filter aggressively
+          validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
 
-             const forbiddenTerms = ["tribute", "cover", "karaoke"];
-             if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
-             if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
-             if (forbiddenTerms.some(term => artistLower.includes(term))) return false;
+          if (typeof item === 'string') {
+              const searchArtist = item.toLowerCase();
+              validTracks = validTracks.filter((t: ItunesTrack) => {
+                 const artistLower = (t.artistName || "").toLowerCase();
+                 const trackLower = (t.trackName || "").toLowerCase();
+                 const collectionLower = (t.collectionName || "").toLowerCase();
 
-             return true;
-          });
+                 if (!artistLower.includes(searchArtist)) return false;
+
+                 const forbiddenTerms = ["tribute", "cover", "karaoke"];
+                 if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
+                 if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
+                 if (forbiddenTerms.some(term => artistLower.includes(term))) return false;
+
+                 return true;
+              });
+          }
       }
 
       if (validTracks.length === 0) continue;
 
       // Select a track - CRITICAL: Data integrity
-      // We must use the data from THIS specific track object for the answer key.
       const track = validTracks[0];
 
       const uniqueId = `music-${track.trackId}`;
@@ -139,17 +180,14 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
           }
       }
 
-      // Check for Manual Title Override (Only for Movie Themes)
-      const manualTitle = (isObject && (item as any).title) ? (item as any).title : null;
-
       let titleDisplay = "";
       let artistDisplay = "";
 
       if (isMovieCat) {
-        // For soundtracks, prefer the manual title (Movie Name) defined in musicData.ts
+        // For soundtracks, prefer the manual title (Movie Name)
         // fallback to Collection Name (Album), then Track Name from API
         titleDisplay = manualTitle || track.collectionName || track.trackName || "Unknown Movie";
-        // Ensure artist comes from API track to match audio
+        // Ensure artist is empty for movies to avoid spoiling or showing "London Symphony Orchestra"
         artistDisplay = ""; 
       } else {
         // For standard songs, prefer manual title if exists (cleaner), else API
@@ -202,76 +240,88 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
   return questions;
 };
 
-// --- Logic B: Standard (The Trivia API) ---
+// --- Logic B: Standard (OpenTDB) ---
 const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
-  const url = `${TRIVIA_API_URL}?categories=${cat.id}&limit=20`; // Fetch more to filter by diff
+  const categoryId = getOpenTDBCategoryId(cat.id);
+  // Fetch more to sort by difficulty
+  const url = `${OPENTDB_API_URL}?amount=20&type=multiple&category=${categoryId}`;
   const playedItems = getPlayedItems();
 
   try {
     const res = await fetch(url);
     if (!res.ok) return [];
     
-    const rawData: ApiQuestion[] = await res.json();
-    
-    // Filter duplicates first
-    const freshQuestions = rawData.filter(q => !playedItems.includes(q.id));
-    
-    // Fallback if we run out of fresh questions
-    const pool = freshQuestions.length >= 5 ? freshQuestions : rawData;
+    const data = await res.json();
+    let rawResults: any[] = data.results || [];
 
-    const easy = pool.filter(q => q.difficulty === 'easy');
-    const medium = pool.filter(q => q.difficulty === 'medium');
-    const hard = pool.filter(q => q.difficulty === 'hard');
+    // Filter duplicates using question text as ID proxy (OpenTDB doesn't return stable IDs)
+    const freshQuestions = rawResults.filter(q => {
+        const tempId = `otdb-${q.question.substring(0, 10)}`; // Weak hash
+        return !playedItems.includes(tempId);
+    });
+
+    const pool = freshQuestions.length >= 5 ? freshQuestions : rawResults;
+    
+    // Sort by difficulty
+    const easy = pool.filter((q: any) => q.difficulty === 'easy');
+    const medium = pool.filter((q: any) => q.difficulty === 'medium');
+    const hard = pool.filter((q: any) => q.difficulty === 'hard');
 
     const selectedQuestions: ProcessedQuestion[] = [];
     const pointValues = [200, 400, 600, 800, 1000];
     
-    const slots = ['easy', 'medium', 'medium', 'hard', 'hard'];
-    
+    // Grid Target: Easy, Easy, Medium, Medium, Hard
+    const slots = ['easy', 'easy', 'medium', 'medium', 'hard'];
+
     for (let i = 0; i < 5; i++) {
-      const targetDiff = slots[i];
-      let qRaw: ApiQuestion | undefined;
+        const targetDiff = slots[i];
+        let qRaw: any;
 
-      if (targetDiff === 'easy') qRaw = easy.pop();
-      else if (targetDiff === 'medium') qRaw = medium.pop();
-      else qRaw = hard.pop();
+        if (targetDiff === 'easy') qRaw = easy.pop();
+        else if (targetDiff === 'medium') qRaw = medium.pop();
+        else qRaw = hard.pop();
 
-      // Backfill if empty
-      if (!qRaw) {
-        if (targetDiff === 'hard') qRaw = medium.pop() || easy.pop();
-        else if (targetDiff === 'medium') qRaw = hard.pop() || easy.pop();
-        else qRaw = medium.pop() || hard.pop();
-      }
+        // Backfill
+        if (!qRaw) {
+             if (targetDiff === 'hard') qRaw = medium.pop() || easy.pop();
+             else if (targetDiff === 'medium') qRaw = hard.pop() || easy.pop();
+             else qRaw = medium.pop() || hard.pop();
+        }
 
-      // Last resort: Just pick anything not selected
-      if (!qRaw) qRaw = pool.find(q => !selectedQuestions.some(sq => sq.id === q.id));
+        // Last resort
+        if (!qRaw) qRaw = pool[i] || pool[0];
 
-      if (qRaw) {
-        // STRICT SHUFFLE for Multiple Choice
-        const answerPool = [qRaw.correctAnswer, ...qRaw.incorrectAnswers];
-        const shuffledAnswers = shuffle(answerPool);
+        if (qRaw) {
+            const questionText = decodeHtml(qRaw.question);
+            const correctAnswer = decodeHtml(qRaw.correct_answer);
+            const incorrectAnswers = qRaw.incorrect_answers.map((a: string) => decodeHtml(a));
+            
+            const uniqueId = `otdb-${questionText.substring(0, 15).replace(/\s/g, '')}`;
 
-        selectedQuestions.push({
-          id: qRaw.id,
-          category: cat.name,
-          type: 'text',
-          difficulty: qRaw.difficulty,
-          question: qRaw.question.text,
-          correct_answer: qRaw.correctAnswer,
-          incorrect_answers: qRaw.incorrectAnswers,
-          all_answers: shuffledAnswers, 
-          isAnswered: false,
-          pointValue: pointValues[i],
-          mediaType: 'text',
-          timerDuration: 20
-        });
-        savePlayedItem(qRaw.id);
-      }
+            const allAnswers = shuffle([correctAnswer, ...incorrectAnswers]);
+
+            selectedQuestions.push({
+                id: uniqueId,
+                category: cat.name,
+                type: 'text',
+                difficulty: qRaw.difficulty,
+                question: questionText,
+                correct_answer: correctAnswer,
+                incorrect_answers: incorrectAnswers,
+                all_answers: allAnswers,
+                isAnswered: false,
+                pointValue: pointValues[i],
+                mediaType: 'text',
+                timerDuration: 20
+            });
+            savePlayedItem(uniqueId);
+        }
     }
+
     return selectedQuestions.length === 5 ? selectedQuestions : [];
 
   } catch (e) {
-    console.error("Standard API Error", e);
+    console.error("OpenTDB API Error", e);
     return [];
   }
 };
@@ -531,6 +581,7 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
     } else if (cat.id === 'football_career') {
       questions = await fetchCareerQuestions(cat);
     } else {
+      // Default to OpenTDB for all standard text categories
       questions = await fetchStandardQuestions(cat);
     }
 

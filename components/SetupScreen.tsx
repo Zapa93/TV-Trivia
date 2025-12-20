@@ -18,34 +18,34 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
   }, [playerCount]);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden bg-slate-950">
       
       {/* Title */}
-      <div className="mb-16 text-center animate-float relative z-10">
-        <h1 className="text-[120px] font-black tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-r from-magic-cyan via-white to-magic-pink drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)]">
+      <div className="mb-16 text-center relative z-10">
+        <h1 className="text-[100px] font-black tracking-tighter leading-none text-white drop-shadow-lg">
           TRIVIA
         </h1>
-        <div className="text-2xl text-purple-200 font-bold tracking-[0.5em] uppercase mt-2 drop-shadow-md">
+        <div className="text-2xl text-purple-200 font-bold tracking-[0.5em] uppercase mt-2">
           Magic Edition
         </div>
       </div>
 
-      <div className="glass-panel p-14 rounded-[2rem] border border-white/20 flex flex-col items-center space-y-12 w-full max-w-3xl backdrop-blur-2xl shadow-2xl z-10">
+      <div className="glass-panel p-14 rounded-[2rem] flex flex-col items-center space-y-12 w-full max-w-3xl z-10">
         <h2 className="text-xl text-cyan-200 uppercase tracking-[0.2em] font-bold">Select Contenders</h2>
         
         <div className="flex items-center space-x-16">
           <div className={`
-             transition-all duration-300 w-56 h-56 rounded-full border-4
+             transition-transform duration-200 w-56 h-56 rounded-full border-4
              flex items-center justify-center relative
-             ${isFocused ? 'border-magic-cyan bg-white/10 shadow-glow-strong scale-110' : 'border-white/20 bg-black/20'}
+             ${isFocused ? 'border-magic-cyan bg-slate-800 scale-105' : 'border-slate-600 bg-slate-900'}
           `}>
-             <span className="text-9xl font-black font-mono text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">{playerCount}</span>
+             <span className="text-9xl font-black font-mono text-white">{playerCount}</span>
              
              {/* Arrows */}
              {isFocused && (
                <>
-                <div className="absolute -left-20 text-5xl text-magic-cyan animate-pulse drop-shadow-lg">◀</div>
-                <div className="absolute -right-20 text-5xl text-magic-cyan animate-pulse drop-shadow-lg">▶</div>
+                <div className="absolute -left-20 text-5xl text-magic-cyan">◀</div>
+                <div className="absolute -right-20 text-5xl text-magic-cyan">▶</div>
                </>
              )}
           </div>
@@ -57,10 +57,10 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
             <div 
               key={idx} 
               className={`
-                h-16 w-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-500 border border-white/30
+                h-16 w-16 rounded-2xl flex items-center justify-center text-3xl transition-opacity duration-200 border border-slate-600
                 ${idx < playerCount 
-                  ? 'bg-gradient-to-br from-magic-cyan to-blue-600 shadow-neon-blue scale-110 opacity-100' 
-                  : 'bg-black/30 opacity-30 grayscale'
+                  ? 'bg-blue-600 opacity-100' 
+                  : 'bg-slate-900 opacity-30'
                 }
               `} 
             >
@@ -69,7 +69,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onNext }) => {
           ))}
         </div>
 
-        <div className="mt-8 text-center bg-white/10 px-8 py-3 rounded-full border border-white/10">
+        <div className="mt-8 text-center bg-slate-800 px-8 py-3 rounded-full border border-slate-700">
           <p className="text-sm font-bold tracking-widest uppercase text-white">Press <span className="text-magic-pink mx-1">OK</span> to Start</p>
         </div>
       </div>

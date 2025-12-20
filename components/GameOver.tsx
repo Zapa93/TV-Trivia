@@ -17,20 +17,17 @@ export const GameOver: React.FC<GameOverProps> = ({ players, onRestart }) => {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center animate-zoom-in relative z-20">
-       <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-8 animate-float drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+    <div className="h-screen w-screen flex flex-col items-center justify-center relative z-20 bg-slate-950">
+       <h1 className="text-8xl font-black text-yellow-400 mb-8">
          CHAMPION
        </h1>
        
-       <div className="glass-panel-active rounded-[3rem] p-16 text-center shadow-glow-gold mb-12 border-4 border-yellow-400/30 relative overflow-hidden bg-gradient-to-b from-white/10 to-transparent">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-400 blur-[80px] opacity-40"></div>
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-400 blur-[80px] opacity-40"></div>
-
+       <div className="glass-panel-active rounded-[3rem] p-16 text-center mb-12 border-4 border-yellow-400 relative overflow-hidden bg-slate-900">
           <p className="text-yellow-300 uppercase tracking-[0.4em] mb-6 font-bold text-sm">The Grand Winner</p>
-          <div className="text-8xl mb-4 animate-bounce">{winner.avatar}</div>
-          <div className="text-6xl font-black text-white mb-6 drop-shadow-lg">{winner.name}</div>
+          <div className="text-8xl mb-4">{winner.avatar}</div>
+          <div className="text-6xl font-black text-white mb-6">{winner.name}</div>
           <div className="inline-block bg-yellow-400/20 px-8 py-2 rounded-full border border-yellow-400/40">
-            <div className="text-7xl font-mono text-yellow-300 font-bold drop-shadow-md">${winner.score}</div>
+            <div className="text-7xl font-mono text-yellow-300 font-bold">${winner.score}</div>
           </div>
        </div>
 
@@ -47,7 +44,7 @@ export const GameOver: React.FC<GameOverProps> = ({ players, onRestart }) => {
          ))}
        </div>
 
-       <div className="mt-16 bg-white/10 px-10 py-4 rounded-full animate-pulse border border-white/20 shadow-glow">
+       <div className="mt-16 bg-slate-800 px-10 py-4 rounded-full border border-slate-600">
          <span className="text-white uppercase tracking-widest font-bold text-base">Press <span className="text-magic-pink">OK</span> to Play Again</span>
        </div>
     </div>
