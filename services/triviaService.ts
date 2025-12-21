@@ -190,10 +190,20 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       // If filtering removed all tracks (e.g. artist has no hits in this specific decade available), skip.
       if (validTracks.length === 0) continue;
 
-      // Select a track - CRITICAL: Data integrity
-      const track = validTracks[0];
+      // Select a track - Iterate to find one not played yet
+      let track = validTracks[0]; 
+      let uniqueId = `music-${track.trackId}`;
+      let isDuplicate = true; // Assume duplicate until found otherwise
 
-      const uniqueId = `music-${track.trackId}`;
+      for (const t of validTracks) {
+          const tempId = `music-${t.trackId}`;
+          if (!playedItems.includes(tempId)) {
+              track = t;
+              uniqueId = tempId;
+              isDuplicate = false;
+              break;
+          }
+      }
 
       // Extract Year
       let releaseYear = "";
@@ -240,7 +250,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         }
       };
 
-      if (playedItems.includes(uniqueId)) {
+      if (isDuplicate) {
         duplicatesBuffer.push(newQuestion);
         continue;
       }
