@@ -248,8 +248,26 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
   const playedItems = getPlayedItems();
 
   try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
+    // Retry Logic for Rate Limits (429)
+    let res: Response | null = null;
+    for(let attempt = 0; attempt < 3; attempt++) {
+        try {
+            res = await fetch(url);
+            if (res.status === 429) {
+                // Wait longer for each retry
+                await wait(1500 * (attempt + 1));
+                continue;
+            }
+            if (res.ok) break;
+        } catch(e) {
+            await wait(500);
+        }
+    }
+
+    if (!res || !res.ok) {
+        console.warn(`Failed to fetch OpenTDB cat ${categoryId} after retries`);
+        return [];
+    }
     
     const data = await res.json();
     let rawResults: any[] = data.results || [];
@@ -261,7 +279,8 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
     });
 
     const pool = freshQuestions.length >= 5 ? freshQuestions : rawResults;
-    
+    if (pool.length === 0) return []; // No questions available at all
+
     // Sort by difficulty
     const easy = pool.filter((q: any) => q.difficulty === 'easy');
     const medium = pool.filter((q: any) => q.difficulty === 'medium');
@@ -288,15 +307,18 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
              else qRaw = medium.pop() || hard.pop();
         }
 
-        // Last resort
-        if (!qRaw) qRaw = pool[i] || pool[0];
+        // Last resort: Cyclic fallback if we ran out of unique questions in buckets
+        if (!qRaw) {
+            qRaw = pool[i % pool.length];
+        }
 
         if (qRaw) {
             const questionText = decodeHtml(qRaw.question);
             const correctAnswer = decodeHtml(qRaw.correct_answer);
             const incorrectAnswers = qRaw.incorrect_answers.map((a: string) => decodeHtml(a));
             
-            const uniqueId = `otdb-${questionText.substring(0, 15).replace(/\s/g, '')}`;
+            // Generate unique ID even if reused (append index)
+            const uniqueId = `otdb-${questionText.substring(0, 15).replace(/[^a-zA-Z0-9]/g, '')}-${i}`;
 
             const allAnswers = shuffle([correctAnswer, ...incorrectAnswers]);
 
@@ -555,7 +577,7 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
   const columns: CategoryColumn[] = [];
 
   for (const cat of selectedCategories) {
-    await wait(400); 
+    await wait(600); // Increased from 400ms to allow more breathing room for OpenTDB
     
     let questions: ProcessedQuestion[] = [];
 

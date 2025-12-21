@@ -143,22 +143,22 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center relative overflow-hidden text-white z-10 bg-slate-950">
       
-      <div className="mt-4 mb-6 text-center">
-        <h2 className="text-4xl font-black tracking-tight mb-2 text-white">
+      <div className="mt-8 mb-6 text-center">
+        <h2 className="text-5xl font-black tracking-tight mb-3 text-white">
           Choose Your Destiny
         </h2>
-        <div className="flex items-center justify-center space-x-3">
-          <div className="glass-panel px-6 py-1 rounded-full flex items-center gap-2 border-slate-600">
-            <span className={`text-xl font-mono font-bold ${isValid ? 'text-magic-cyan' : 'text-gray-400'}`}>
+        <div className="flex items-center justify-center space-x-4">
+          <div className="glass-panel px-8 py-2 rounded-full flex items-center gap-3 border-slate-600">
+            <span className={`text-2xl font-mono font-bold ${isValid ? 'text-magic-cyan' : 'text-gray-400'}`}>
               {selectedIds.length} / 6
             </span>
-            <span className="text-[10px] text-gray-300 uppercase tracking-widest font-semibold">Categories (Min 4)</span>
+            <span className="text-xs text-gray-300 uppercase tracking-widest font-bold">Categories (Min 4)</span>
           </div>
         </div>
       </div>
 
-      {/* Grid Container - Enlarged to 6 cols */}
-      <div className="grid grid-cols-6 gap-4 mb-8 w-full max-w-7xl px-8 flex-1 content-center">
+      {/* Grid Container - Enlarged Items and Font */}
+      <div className="grid grid-cols-6 gap-6 mb-8 w-full max-w-[95vw] px-4 flex-1 content-center">
         {AVAILABLE_CATEGORIES.map((cat, idx) => {
           const isSelected = selectedIds.includes(cat.id);
           const isFocused = focusIndex === idx;
@@ -188,24 +188,23 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
             <div
               key={cat.id}
               className={`
-                h-24 flex flex-col items-center justify-center rounded-xl border-2 relative overflow-hidden
+                h-36 flex flex-col items-center justify-center rounded-2xl border-4 relative overflow-hidden shadow-lg transition-transform duration-200
                 ${baseColor}
                 ${!isSelected && 'text-gray-400 opacity-90'}
-                ${isFocused ? 'tv-focus z-10 !opacity-100 scale-105' : ''}
+                ${isFocused ? 'tv-focus z-10 !opacity-100 scale-110 shadow-xl' : ''}
               `}
             >
-              <span className="text-3xl mb-1">{cat.emoji}</span>
-              <span className="text-xs font-bold uppercase tracking-wide text-center px-1 leading-tight">
+              <span className="text-6xl mb-3 drop-shadow-md">{cat.emoji}</span>
+              <span className="text-sm font-black uppercase tracking-wide text-center px-1 leading-tight drop-shadow-md">
                 {cat.name}
               </span>
               
               {/* Type Badge */}
-              {isMusic && <div className="absolute top-1 left-1 text-[8px] font-bold bg-fuchsia-500 text-white px-1 rounded-sm">MUSIC</div>}
-              {isVisual && <div className="absolute top-1 left-1 text-[8px] font-bold bg-emerald-500 text-white px-1 rounded-sm">VISUAL</div>}
-              {/* {isOtdb && <div className="absolute top-1 left-1 text-[8px] font-bold bg-indigo-500 text-white px-1 rounded-sm">TRIVIA</div>} */}
+              {isMusic && <div className="absolute top-2 left-2 text-[10px] font-black bg-fuchsia-600 text-white px-2 py-0.5 rounded shadow-sm">MUSIC</div>}
+              {isVisual && <div className="absolute top-2 left-2 text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded shadow-sm">VISUAL</div>}
 
               {isSelected && (
-                <div className="absolute top-1 right-1 w-3 h-3 bg-white rounded-full shadow-md border-2 border-white/50"></div>
+                <div className="absolute top-2 right-2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-gray-300"></div>
               )}
             </div>
           );
@@ -213,11 +212,11 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
       </div>
 
       {/* Actions Container */}
-      <div className="flex items-center space-x-6 mb-8">
+      <div className="flex items-center space-x-8 mb-10">
         {/* Start Button */}
         <div 
           className={`
-            px-12 py-3 rounded-full border-2 flex items-center space-x-4
+            px-14 py-4 rounded-full border-4 flex items-center space-x-5
             ${focusIndex === START_BUTTON_INDEX ? 'tv-focus scale-105' : ''}
             ${isValid 
               ? 'bg-blue-600 text-white border-blue-400' 
@@ -225,29 +224,29 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
             }
           `}
         >
-          <span className="font-black tracking-[0.2em] uppercase text-lg">BEGIN</span>
-          {isValid && <span className="bg-white text-blue-900 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">OK</span>}
+          <span className="font-black tracking-[0.2em] uppercase text-2xl">BEGIN</span>
+          {isValid && <span className="bg-white text-blue-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">OK</span>}
         </div>
 
         {/* Randomize Button */}
         <div 
           className={`
-            px-8 py-3 rounded-full border-2 flex items-center space-x-2
+            px-10 py-4 rounded-full border-4 flex items-center space-x-3
             ${focusIndex === RANDOM_BUTTON_INDEX ? 'tv-focus bg-purple-600 border-white text-white' : 'bg-gray-800 border-gray-600 text-gray-400'}
           `}
         >
-          <span className="text-xl">🎲</span>
-          <span className="font-bold tracking-widest uppercase text-sm">Random</span>
+          <span className="text-2xl">🎲</span>
+          <span className="font-bold tracking-widest uppercase text-lg">Random</span>
         </div>
 
         {/* Reset History Button */}
         <div 
           className={`
-             px-6 py-3 rounded-full border border-red-900/50
+             px-8 py-4 rounded-full border-2 border-red-900/50
              ${focusIndex === RESET_BUTTON_INDEX ? 'tv-focus bg-red-900 border-red-500 text-white' : 'text-red-400/70'}
           `}
         >
-           <span className="text-xs font-bold uppercase tracking-widest">Clear History</span>
+           <span className="text-sm font-bold uppercase tracking-widest">Clear History</span>
         </div>
       </div>
 
