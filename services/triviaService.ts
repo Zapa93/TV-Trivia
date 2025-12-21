@@ -101,8 +101,12 @@ const generateSongKey = (artist: string, title: string): string => {
   return `song_${normalize(artist)}_${normalize(title)}`;
 };
 
-// Updated Type to support ID-based items
-type MusicItem = string | { title: string; artist: string } | { title: string; id: number };
+// Updated Type to support string, ID objects, Title/Artist objects, and Artist/Limit objects
+type MusicItem = 
+  | string 
+  | { artist: string; limit?: number } 
+  | { title: string; artist: string } 
+  | { title: string; id: number };
 
 interface Country {
   name: { common: string };
@@ -134,11 +138,12 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
     let manualTitle: string | null = null;
     let isIdLookup = false;
 
-    // Detect if this is a Specific Request (Object from musicData) or Generic (String)
-    // Used for the "Abort on Play" logic
-    const isSpecificRequest = typeof item !== 'string' && !('id' in item);
+    // Detect if this is a Specific Song Request
+    // ONLY true if the item has a 'title' property.
+    // { artist: 'X', limit: 10 } is considered a generic search, so we continue if played.
+    const isSpecificRequest = typeof item !== 'string' && 'title' in item;
 
-    // Determine if Item is String, Query Object, or ID Object
+    // Determine URL based on Item Type
     if (typeof item === 'string') {
         const term = encodeURIComponent(item);
         url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=25&country=US`;
@@ -147,12 +152,18 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         isIdLookup = true;
         url = `${ITUNES_LOOKUP_URL}?id=${item.id}&country=US`;
         manualTitle = item.title;
-    } else {
-        // Query Based Object
+    } else if ('title' in item) {
+        // Specific Song Query ({ title, artist })
         const query = `${item.title} ${item.artist}`;
         const term = encodeURIComponent(query);
         url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
         manualTitle = item.title;
+    } else {
+        // Artist with Limit ({ artist, limit })
+        const limit = item.limit || 25;
+        const term = encodeURIComponent(item.artist);
+        url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=${limit}&country=US`;
+        manualTitle = null; // Let API decide title
     }
 
     try {
@@ -189,13 +200,29 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
               });
           }
 
-          // --- OBJECT SEARCH (Specific Song Request) ---
+          // --- OBJECT SEARCH (Specific Song OR Artist+Limit) ---
           if (typeof item !== 'string' && 'artist' in item) {
               const requiredArtist = item.artist.toLowerCase();
               validTracks = validTracks.filter((t: ItunesTrack) => {
                   const artistLower = (t.artistName || "").toLowerCase();
-                  // Requirement: iTunes artist MUST include the specified artist
-                  return artistLower.includes(requiredArtist);
+                  
+                  // 1. Strict Artist Check (Required for both {title, artist} and {artist, limit})
+                  if (!artistLower.includes(requiredArtist)) return false;
+
+                  // 2. Forbidden Terms Check
+                  // Apply ONLY if it's NOT a specific title request (i.e. it is { artist, limit })
+                  // We assume specific title requests provided by us are safe, but generic artist pulls need filtering.
+                  if (!('title' in item)) {
+                      const trackLower = (t.trackName || "").toLowerCase();
+                      const collectionLower = (t.collectionName || "").toLowerCase();
+                      const forbiddenTerms = ["tribute", "cover", "karaoke"];
+                      
+                      if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
+                      if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
+                      if (forbiddenTerms.some(term => artistLower.includes(term))) return false;
+                  }
+
+                  return true;
               });
           }
       }
@@ -223,16 +250,14 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
           if (playedItems.includes(key)) {
               // LOGIC BRANCH:
               // If we requested a SPECIFIC song (e.g. "Logic - 1-800") and it is played,
-              // we must ABORT this entire item. We do NOT want to search deeper 
-              // and find a cover version (which would have a different iTunes ID but same title).
+              // we must ABORT this entire item.
+              // If it's a GENERIC artist search (String or {artist, limit}), we continue to finding the next track.
               if (isSpecificRequest) {
                   track = null; // Ensure we don't pick anything
                   break; // Break inner loop, will trigger 'continue' in outer loop
               }
               
-              // If it's a GENERIC artist search (e.g. "Coldplay"), and "Yellow" is played,
-              // we simply continue the inner loop to find "Fix You".
-              continue;
+              continue; // Skip this track, check next one in validTracks
           }
 
           // Found a valid, unplayed track
