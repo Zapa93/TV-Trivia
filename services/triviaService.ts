@@ -84,6 +84,17 @@ const getOpenTDBCategoryId = (id: string): number => {
   return map[id] || 9;
 };
 
+// Helper to determine year range for music categories
+const getDecadeRange = (catId: string): { start: number, end: number } | null => {
+  switch (catId) {
+    case 'music_80s': return { start: 1980, end: 1989 };
+    case 'music_90s': return { start: 1990, end: 1999 };
+    case 'music_2000s': return { start: 2000, end: 2009 };
+    case 'music_2010s': return { start: 2010, end: 2019 };
+    default: return null;
+  }
+};
+
 // Updated Type to support ID-based items
 type MusicItem = string | { query: string; title: string } | { title: string; id: number };
 
@@ -97,9 +108,10 @@ interface Country {
 // --- Logic A: Music (iTunes) ---
 const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promise<ProcessedQuestion[]> => {
   const playedItems = getPlayedItems();
+  const decadeRange = getDecadeRange(cat.id);
   
   const shuffledList = shuffle(list);
-  const candidates = shuffledList.slice(0, 30); // Grab more candidates
+  const candidates = shuffledList.slice(0, 30); // Grab more candidates to account for filtering
   
   const questions: ProcessedQuestion[] = [];
   const duplicatesBuffer: ProcessedQuestion[] = []; 
@@ -164,6 +176,18 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
           }
       }
 
+      // --- STRICT DECADE FILTERING ---
+      // If a decade range applies, exclude songs outside that range.
+      // This prevents a 90s artist search returning a 2023 remaster or new single.
+      if (decadeRange && !isIdLookup) {
+         validTracks = validTracks.filter(t => {
+            if (!t.releaseDate) return false;
+            const releaseYear = new Date(t.releaseDate).getFullYear();
+            return releaseYear >= decadeRange.start && releaseYear <= decadeRange.end;
+         });
+      }
+
+      // If filtering removed all tracks (e.g. artist has no hits in this specific decade available), skip.
       if (validTracks.length === 0) continue;
 
       // Select a track - CRITICAL: Data integrity
@@ -255,12 +279,12 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
             res = await fetch(url);
             if (res.status === 429) {
                 // Wait longer for each retry
-                await wait(1500 * (attempt + 1));
+                await wait(2000 * (attempt + 1));
                 continue;
             }
             if (res.ok) break;
         } catch(e) {
-            await wait(500);
+            await wait(1000);
         }
     }
 
@@ -577,7 +601,7 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
   const columns: CategoryColumn[] = [];
 
   for (const cat of selectedCategories) {
-    await wait(600); // Increased from 400ms to allow more breathing room for OpenTDB
+    await wait(150); // Reduced delay to 150ms as requested
     
     let questions: ProcessedQuestion[] = [];
 

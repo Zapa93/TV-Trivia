@@ -15,14 +15,41 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   currentPlayerIndex, 
   onQuestionSelect 
 }) => {
-  const [focus, setFocus] = useState<[number, number]>([0, 0]);
   const colCount = categories.length;
 
+  // Initialize focus to the first unanswered question
+  const [focus, setFocus] = useState<[number, number]>(() => {
+    for (let c = 0; c < colCount; c++) {
+      for (let r = 0; r < 5; r++) {
+        if (!categories[c].questions[r].isAnswered) return [c, r];
+      }
+    }
+    return [0, 0];
+  });
+
+  // Helper to find next valid (unanswered) cell in a direction
+  const getNextFocus = (startC: number, startR: number, dC: number, dR: number): [number, number] => {
+      let c = startC + dC;
+      let r = startR + dR;
+      
+      // Loop while within bounds
+      while (c >= 0 && c < colCount && r >= 0 && r < 5) {
+          if (!categories[c].questions[r].isAnswered) {
+              return [c, r];
+          }
+          // Continue searching in the same direction
+          c += dC;
+          r += dR;
+      }
+      // If no valid move found, stay on current cell
+      return [startC, startR];
+  };
+
   useTVNavigation({
-    onUp: () => setFocus(([c, r]) => [c, Math.max(0, r - 1)]),
-    onDown: () => setFocus(([c, r]) => [c, Math.min(4, r + 1)]),
-    onLeft: () => setFocus(([c, r]) => [Math.max(0, c - 1), r]),
-    onRight: () => setFocus(([c, r]) => [Math.min(categories.length - 1, c + 1), r]),
+    onUp: () => setFocus(([c, r]) => getNextFocus(c, r, 0, -1)),
+    onDown: () => setFocus(([c, r]) => getNextFocus(c, r, 0, 1)),
+    onLeft: () => setFocus(([c, r]) => getNextFocus(c, r, -1, 0)),
+    onRight: () => setFocus(([c, r]) => getNextFocus(c, r, 1, 0)),
     onEnter: () => {
       const [c, r] = focus;
       const question = categories[c].questions[r];
@@ -91,7 +118,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                            ? 'bg-slate-900 border-2 border-slate-800 opacity-40'
                            : cellColor
                          }
-                         ${isFocused 
+                         ${isFocused && !q.isAnswered
                             ? 'scale-105 z-20 border-4 border-white shadow-xl brightness-110'
                             : ''
                          }
