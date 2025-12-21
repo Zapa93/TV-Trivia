@@ -168,6 +168,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
           // For Search, filter aggressively
           validTracks = (data.results || []).filter((t: any) => t.previewUrl && t.kind === 'song');
 
+          // --- STRING SEARCH (Generic Artist) ---
           if (typeof item === 'string') {
               const searchArtist = item.toLowerCase();
               validTracks = validTracks.filter((t: ItunesTrack) => {
@@ -175,10 +176,10 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
                  const trackLower = (t.trackName || "").toLowerCase();
                  const collectionLower = (t.collectionName || "").toLowerCase();
 
-                 // Kollar att artistnamnet finns med (lite luddigt för att fånga feat. etc)
+                 // Check if artist name matches the search term
                  if (!artistLower.includes(searchArtist)) return false;
 
-                 // Tar bort skräp
+                 // Remove garbage/unwanted terms (covers, karaoke, etc.)
                  const forbiddenTerms = ["tribute", "cover", "karaoke"];
                  if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
                  if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
@@ -188,14 +189,15 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
               });
           }
 
+          // --- OBJECT SEARCH (Specific Song Request) ---
           if (typeof item !== 'string' && 'artist' in item) {
-          const requiredArtist = item.artist.toLowerCase();
-          validTracks = validTracks.filter((t: ItunesTrack) => {
-              const artistLower = (t.artistName || "").toLowerCase();
-              // Krav: iTunes-artisten MÅSTE innehålla din angivna artist
-              return artistLower.includes(requiredArtist);
-          });
-      }
+              const requiredArtist = item.artist.toLowerCase();
+              validTracks = validTracks.filter((t: ItunesTrack) => {
+                  const artistLower = (t.artistName || "").toLowerCase();
+                  // Requirement: iTunes artist MUST include the specified artist
+                  return artistLower.includes(requiredArtist);
+              });
+          }
       }
 
       // --- STRICT DECADE FILTERING ---
@@ -210,7 +212,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       // If filtering removed all tracks, skip.
       if (validTracks.length === 0) continue;
 
-      // --- NEW PLAYED LOGIC ---
+      // --- PLAYED LOGIC ---
       let track: ItunesTrack | null = null;
       let songKey = "";
       let isDuplicate = true; // Assume true initially
