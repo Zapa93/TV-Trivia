@@ -95,8 +95,14 @@ const getDecadeRange = (catId: string): { start: number, end: number } | null =>
   }
 };
 
+// Normalization Helper for Song Identity
+const generateSongKey = (artist: string, title: string): string => {
+  const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `song_${normalize(artist)}_${normalize(title)}`;
+};
+
 // Updated Type to support ID-based items
-type MusicItem = string | { query: string; title: string } | { title: string; id: number };
+type MusicItem = string | { title: string; artist: string } | { title: string; id: number };
 
 interface Country {
   name: { common: string };
@@ -128,6 +134,10 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
     let manualTitle: string | null = null;
     let isIdLookup = false;
 
+    // Detect if this is a Specific Request (Object from musicData) or Generic (String)
+    // Used for the "Abort on Play" logic
+    const isSpecificRequest = typeof item !== 'string' && !('id' in item);
+
     // Determine if Item is String, Query Object, or ID Object
     if (typeof item === 'string') {
         const term = encodeURIComponent(item);
@@ -139,7 +149,8 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         manualTitle = item.title;
     } else {
         // Query Based Object
-        const term = encodeURIComponent(item.query);
+        const query = `${item.title} ${item.artist}`;
+        const term = encodeURIComponent(query);
         url = `${ITUNES_API_URL}?term=${term}&entity=song&limit=5&country=US`;
         manualTitle = item.title;
     }
@@ -177,8 +188,6 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       }
 
       // --- STRICT DECADE FILTERING ---
-      // If a decade range applies, exclude songs outside that range.
-      // This prevents a 90s artist search returning a 2023 remaster or new single.
       if (decadeRange && !isIdLookup) {
          validTracks = validTracks.filter(t => {
             if (!t.releaseDate) return false;
@@ -187,23 +196,41 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
          });
       }
 
-      // If filtering removed all tracks (e.g. artist has no hits in this specific decade available), skip.
+      // If filtering removed all tracks, skip.
       if (validTracks.length === 0) continue;
 
-      // Select a track - Iterate to find one not played yet
-      let track = validTracks[0]; 
-      let uniqueId = `music-${track.trackId}`;
-      let isDuplicate = true; // Assume duplicate until found otherwise
+      // --- NEW PLAYED LOGIC ---
+      let track: ItunesTrack | null = null;
+      let songKey = "";
+      let isDuplicate = true; // Assume true initially
 
       for (const t of validTracks) {
-          const tempId = `music-${t.trackId}`;
-          if (!playedItems.includes(tempId)) {
-              track = t;
-              uniqueId = tempId;
-              isDuplicate = false;
-              break;
+          const key = generateSongKey(t.artistName, t.trackName);
+          
+          if (playedItems.includes(key)) {
+              // LOGIC BRANCH:
+              // If we requested a SPECIFIC song (e.g. "Logic - 1-800") and it is played,
+              // we must ABORT this entire item. We do NOT want to search deeper 
+              // and find a cover version (which would have a different iTunes ID but same title).
+              if (isSpecificRequest) {
+                  track = null; // Ensure we don't pick anything
+                  break; // Break inner loop, will trigger 'continue' in outer loop
+              }
+              
+              // If it's a GENERIC artist search (e.g. "Coldplay"), and "Yellow" is played,
+              // we simply continue the inner loop to find "Fix You".
+              continue;
           }
+
+          // Found a valid, unplayed track
+          track = t;
+          songKey = key;
+          isDuplicate = false;
+          break; // Stop searching inner loop
       }
+
+      // If we didn't find a track (either because all were played, or we aborted), skip to next candidate
+      if (!track) continue;
 
       // Extract Year
       let releaseYear = "";
@@ -218,16 +245,14 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       let artistDisplay = "";
 
       if (isMovieCat) {
-        // For soundtracks, prefer the manual title (Movie Name)
-        // fallback to Collection Name (Album), then Track Name from API
         titleDisplay = manualTitle || track.collectionName || track.trackName || "Unknown Movie";
-        // Ensure artist is empty for movies to avoid spoiling or showing "London Symphony Orchestra"
         artistDisplay = ""; 
       } else {
-        // For standard songs, prefer manual title if exists (cleaner), else API
         titleDisplay = manualTitle || track.trackName || "Unknown Title";
         artistDisplay = track.artistName || "Unknown Artist";
       }
+
+      const uniqueId = `music-${track.trackId}`; // Keep DOM ID simple, but we save songKey to history
 
       const newQuestion: ProcessedQuestion = {
         id: uniqueId,
@@ -256,7 +281,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       }
 
       questions.push(newQuestion);
-      savePlayedItem(uniqueId);
+      savePlayedItem(songKey); // Save the IDENTITY, not just the ID
 
     } catch (e) {
       console.warn("Fetch failed for item:", item);
