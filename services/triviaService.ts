@@ -175,8 +175,10 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
                  const trackLower = (t.trackName || "").toLowerCase();
                  const collectionLower = (t.collectionName || "").toLowerCase();
 
+                 // Kollar att artistnamnet finns med (lite luddigt för att fånga feat. etc)
                  if (!artistLower.includes(searchArtist)) return false;
 
+                 // Tar bort skräp
                  const forbiddenTerms = ["tribute", "cover", "karaoke"];
                  if (forbiddenTerms.some(term => trackLower.includes(term))) return false;
                  if (forbiddenTerms.some(term => collectionLower.includes(term))) return false;
@@ -185,6 +187,15 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
                  return true;
               });
           }
+
+          if (typeof item !== 'string' && 'artist' in item) {
+          const requiredArtist = item.artist.toLowerCase();
+          validTracks = validTracks.filter((t: ItunesTrack) => {
+              const artistLower = (t.artistName || "").toLowerCase();
+              // Krav: iTunes-artisten MÅSTE innehålla din angivna artist
+              return artistLower.includes(requiredArtist);
+          });
+      }
       }
 
       // --- STRICT DECADE FILTERING ---
