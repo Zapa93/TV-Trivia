@@ -91,6 +91,7 @@ const getDecadeRange = (catId: string): { start: number, end: number } | null =>
     case 'music_90s': return { start: 1990, end: 1999 };
     case 'music_2000s': return { start: 2000, end: 2009 };
     case 'music_2010s': return { start: 2010, end: 2019 };
+    // Explicitly return null for other categories to avoid confusion
     default: return null;
   }
 };
@@ -128,7 +129,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
   
   const isMovieCat = cat.id === 'music_movies';
 
-  const POINT_VALUE = isMovieCat ? 600 : 400;
+  const pointValues = [200, 400, 600, 800, 1000];
   const TIMER_DURATION = isMovieCat ? 25 : 15;
 
   for (const item of candidates) {
@@ -295,6 +296,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       const newQuestion: ProcessedQuestion = {
         id: uniqueId,
         category: cat.name,
+        categoryId: cat.id, // Ensure ID is passed
         type: 'music',
         difficulty: 'honor-system',
         question: isMovieCat ? "Guess the Soundtrack!" : "Listen & Guess!",
@@ -302,7 +304,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         incorrect_answers: [],
         all_answers: [],
         isAnswered: false,
-        pointValue: POINT_VALUE,
+        pointValue: pointValues[questions.length], // Use scaling points
         mediaType: 'audio',
         audioUrl: track.previewUrl,
         timerDuration: TIMER_DURATION,
@@ -330,6 +332,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
      const fallback = duplicatesBuffer.pop();
      if (fallback) {
         fallback.id = `music-dup-${Math.random()}`; 
+        fallback.pointValue = pointValues[questions.length]; // Ensure fallback gets correct points
         questions.push(fallback);
      }
   }
@@ -422,6 +425,7 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
             selectedQuestions.push({
                 id: uniqueId,
                 category: cat.name,
+                categoryId: cat.id,
                 type: 'text',
                 difficulty: qRaw.difficulty,
                 question: questionText,
@@ -503,6 +507,7 @@ const fetchGeoQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion
           questions.push({
             id: uniqueId,
             category: cat.name,
+            categoryId: cat.id,
             type: 'honor-system',
             difficulty: i < 2 ? 'easy' : (i < 4 ? 'medium' : 'hard'),
             question: qText,
@@ -603,6 +608,7 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
     questions.push({
       id: uniqueId,
       category: cat.name,
+      categoryId: cat.id,
       type: 'multiple',
       difficulty: 'medium',
       question: "Guess the Release Year!",
@@ -647,6 +653,7 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
     questions.push({
       id: uniqueId,
       category: cat.name,
+      categoryId: cat.id,
       type: 'honor-system',
       difficulty: level <= 2 ? 'easy' : (level <= 4 ? 'medium' : 'hard'),
       question: "Who is this player?",
@@ -689,7 +696,9 @@ export const fetchGameData = async (selectedCategories: TriviaCategory[]): Promi
         case 'music_2010s': list = ARTISTS_2010S; break;
         case 'music_hiphop': list = ARTISTS_HIPHOP; break;
         case 'music_movies': list = MOVIE_THEMES; break;
-        default: list = ARTISTS_2010S;
+        default: 
+          console.warn(`Category ID "${cat.id}" not matched in music switch. Falling back to ARTISTS_2010S. This may cause decade mismatch.`);
+          list = ARTISTS_2010S;
       }
       
       questions = await fetchFromMixedList(list, cat);

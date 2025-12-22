@@ -41,6 +41,7 @@ export interface ItunesTrack {
 export interface ProcessedQuestion {
   id: string;
   category: string; 
+  categoryId: string; // Unique Identifier for logic checks (e.g. music_movies)
   type: string;
   difficulty: string;
   question: string;

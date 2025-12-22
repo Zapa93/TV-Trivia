@@ -35,7 +35,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Checks
-  const isMovieSoundtrack = question.category === 'TV/Movie Soundtrack';
+  const isMovieSoundtrack = question.categoryId === 'music_movies';
   const isMultipleChoice = question.type === 'multiple' || question.type === 'text';
   const isHonorSystem = question.type === 'honor-system' || question.type === 'music';
   
@@ -45,9 +45,29 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   // Rule: Only Music (excluding soundtracks) gets the 50% option
   const canUseHalfPoints = question.type === 'music' && !isMovieSoundtrack;
 
+  // --- AUDIO CLEANUP (Bug Fix) ---
+  // Forcefully stop any playing audio when the question ID changes or component unmounts.
+  // This prevents music from "bleeding" into text questions.
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
+    };
+  }, [question.id]);
+
   // --- AUDIO MODE LOGIC ---
   useEffect(() => {
+    // Only attempt to play if it's explicitly an AUDIO question
     if (question.mediaType === 'audio' && question.audioUrl) {
+      // Clean up previous instance just in case
+      if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+      }
+
       const audio = new Audio(question.audioUrl);
       audio.volume = 1.0; // Enforce Max Volume
       audioRef.current = audio;
@@ -76,6 +96,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
         clearInterval(interval);
         if (audioRef.current) {
           audioRef.current.pause();
+          audioRef.current.currentTime = 0;
           audioRef.current = null;
         }
       };
