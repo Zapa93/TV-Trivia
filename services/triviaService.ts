@@ -14,7 +14,8 @@ import { decodeHtml } from '../utils/helpers';
 const OPENTDB_API_URL = 'https://opentdb.com/api.php';
 const ITUNES_API_URL = 'https://itunes.apple.com/search';
 const ITUNES_LOOKUP_URL = 'https://itunes.apple.com/lookup';
-const REST_COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,flags,capital,population';
+// Updated URL to include 'independent' field
+const REST_COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,flags,capital,population,independent';
 const TMDB_API_URL = 'https://api.themoviedb.org/3/discover/movie';
 
 const PLAYED_ITEMS_KEY = 'trivia_played_items_v2';
@@ -114,6 +115,7 @@ interface Country {
   flags: { svg: string; png: string };
   capital: string[];
   population: number;
+  independent: boolean; // Added independent field
 }
 
 // --- Logic A: Music (iTunes) ---
@@ -129,7 +131,8 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
   
   const isMovieCat = cat.id === 'music_movies';
 
-  const pointValues = [200, 400, 600, 800, 1000];
+  // Fixed 400 points for all music questions per request
+  const POINT_VALUE = 400;
   const TIMER_DURATION = isMovieCat ? 25 : 15;
 
   for (const item of candidates) {
@@ -304,14 +307,15 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
         incorrect_answers: [],
         all_answers: [],
         isAnswered: false,
-        pointValue: pointValues[questions.length], // Use scaling points
+        pointValue: POINT_VALUE, // Fixed at 400
         mediaType: 'audio',
         audioUrl: track.previewUrl,
         timerDuration: TIMER_DURATION,
         answerReveal: {
           artist: artistDisplay,
           title: titleDisplay,
-          year: releaseYear
+          // Hide year for Soundtracks
+          year: isMovieCat ? undefined : releaseYear
         }
       };
 
@@ -332,7 +336,7 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
      const fallback = duplicatesBuffer.pop();
      if (fallback) {
         fallback.id = `music-dup-${Math.random()}`; 
-        fallback.pointValue = pointValues[questions.length]; // Ensure fallback gets correct points
+        fallback.pointValue = POINT_VALUE; // Ensure fallback gets correct points
         questions.push(fallback);
      }
   }
@@ -435,7 +439,7 @@ const fetchStandardQuestions = async (cat: TriviaCategory): Promise<ProcessedQue
                 isAnswered: false,
                 pointValue: pointValues[i],
                 mediaType: 'text',
-                timerDuration: 20
+                timerDuration: 30 // Increased to 30s
             });
             savePlayedItem(uniqueId);
         }
@@ -459,7 +463,16 @@ const fetchGeoQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion
     if (!res.ok) return [];
 
     const allCountries: Country[] = await res.json();
-    const validCountries = allCountries.filter(c => c.name?.common && c.flags?.svg && c.population && c.capital?.[0]);
+    
+    // Updated filtering logic: Independent only, Population >= 250k
+    const validCountries = allCountries.filter(c => 
+      c.name?.common && 
+      c.flags?.svg && 
+      c.population && 
+      c.capital?.[0] &&
+      c.independent === true && // Must be independent
+      c.population >= 250000 // Must have meaningful population (removes micro-states)
+    );
 
     if (validCountries.length < 10) return [];
 
@@ -519,7 +532,7 @@ const fetchGeoQuestions = async (cat: TriviaCategory): Promise<ProcessedQuestion
             mediaType: 'image',
             imageUrl: country.flags.svg,
             infoText: isFlags ? undefined : countryName,
-            timerDuration: 20, 
+            timerDuration: 30, // Increased to 30s
             answerReveal: {
               title: isFlags ? countryName : capitalName,
               artist: isFlags ? "Country" : "Capital" 
@@ -620,7 +633,7 @@ const fetchMoviePosterQuestions = async (cat: TriviaCategory): Promise<Processed
       mediaType: 'image',
       imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
       infoText: movie.title, 
-      timerDuration: 20
+      timerDuration: 30 // Increased to 30s
     });
     savePlayedItem(uniqueId);
   }
@@ -664,7 +677,7 @@ const fetchCareerQuestions = async (cat: TriviaCategory): Promise<ProcessedQuest
       pointValue: pointValues[level - 1],
       mediaType: 'text_sequence',
       clubList: selectedPlayer.clubs, // Pass raw strings
-      timerDuration: 25, 
+      timerDuration: 30, // Increased to 30s
       answerReveal: {
         title: selectedPlayer.player,
         artist: "Career Path"

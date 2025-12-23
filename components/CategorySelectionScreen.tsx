@@ -43,7 +43,7 @@ const AVAILABLE_CATEGORIES: TriviaCategory[] = [
   { id: 'music_90s', name: '90s Hits', emoji: '📼' },
   { id: 'music_80s', name: '80s Hits', emoji: '🕺' },
   { id: 'music_rock', name: 'Rock', emoji: '🎸' },
-  { id: 'music_hiphop', name: 'Hip Hop', emoji: '🎤' },
+  { id: 'music_hiphop', name: 'Hip Hop & RnB', emoji: '🎤' },
   { id: 'music_movies', name: 'Soundtracks', emoji: '🍿' }
 ];
 
