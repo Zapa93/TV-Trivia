@@ -45,14 +45,25 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   // Rule: Only Music (excluding soundtracks) gets the 50% option
   const canUseHalfPoints = question.type === 'music' && !isMovieSoundtrack;
 
+  // Helper for aggressive audio cleanup (WebOS Fix)
+  const cleanupAudio = (audio: HTMLAudioElement) => {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.removeAttribute('src'); // Crucial for WebOS to release resource
+      audio.load(); // Forces media pipeline reset
+    } catch (e) {
+      console.warn("Audio cleanup error:", e);
+    }
+  };
+
   // --- AUDIO CLEANUP (Bug Fix) ---
   // Forcefully stop any playing audio when the question ID changes or component unmounts.
   // This prevents music from "bleeding" into text questions.
   useEffect(() => {
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+        cleanupAudio(audioRef.current);
         audioRef.current = null;
       }
     };
@@ -64,7 +75,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
     if (question.mediaType === 'audio' && question.audioUrl) {
       // Clean up previous instance just in case
       if (audioRef.current) {
-          audioRef.current.pause();
+          cleanupAudio(audioRef.current);
           audioRef.current = null;
       }
 
@@ -95,8 +106,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
       return () => {
         clearInterval(interval);
         if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
+          cleanupAudio(audioRef.current);
           audioRef.current = null;
         }
       };

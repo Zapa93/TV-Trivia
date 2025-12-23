@@ -103,6 +103,15 @@ const generateSongKey = (artist: string, title: string): string => {
   return `song_${normalize(artist)}_${normalize(title)}`;
 };
 
+// Helper to clean up track titles for display (removes Remastered, etc)
+const cleanTrackTitle = (title: string): string => {
+  if (!title) return "Unknown Title";
+  return title
+    .replace(/\s*\(.*(?:remaster|version|mix|edit|feat|live|deluxe).*\)/gi, "") // Remove (Remastered 2009) etc
+    .replace(/\s-\s.*(?:remaster|version).*/gi, "") // Remove - Remastered
+    .trim();
+};
+
 // Updated Type to support string, ID objects, Title/Artist objects, and Artist/Limit objects
 type MusicItem = 
   | string 
@@ -209,15 +218,18 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
               const requiredArtist = item.artist.toLowerCase();
               validTracks = validTracks.filter((t: ItunesTrack) => {
                   const artistLower = (t.artistName || "").toLowerCase();
+                  const trackLower = (t.trackName || "").toLowerCase();
                   
                   // 1. Strict Artist Check (Required for both {title, artist} and {artist, limit})
                   if (!artistLower.includes(requiredArtist)) return false;
 
-                  // 2. Forbidden Terms Check
-                  // Apply ONLY if it's NOT a specific title request (i.e. it is { artist, limit })
-                  // We assume specific title requests provided by us are safe, but generic artist pulls need filtering.
-                  if (!('title' in item)) {
-                      const trackLower = (t.trackName || "").toLowerCase();
+                  // 2. Specific Title Check
+                  if ('title' in item) {
+                      const requiredTitle = item.title.toLowerCase();
+                      // We must ensure the track name matches the requested title
+                      if (!trackLower.includes(requiredTitle)) return false;
+                  } else {
+                      // 2b. Forbidden Terms Check (only if not specific title)
                       const collectionLower = (t.collectionName || "").toLowerCase();
                       const forbiddenTerms = ["tribute", "cover", "karaoke"];
                       
@@ -287,10 +299,14 @@ const fetchFromMixedList = async (list: MusicItem[], cat: TriviaCategory): Promi
       let artistDisplay = "";
 
       if (isMovieCat) {
+        // For movies, we trust our manual title (the movie name) over the track name (often "Main Title")
         titleDisplay = manualTitle || track.collectionName || track.trackName || "Unknown Movie";
         artistDisplay = ""; 
       } else {
-        titleDisplay = manualTitle || track.trackName || "Unknown Title";
+        // For regular music, ALWAYS trust the API track metadata.
+        // This ensures the Audio (from track.previewUrl) and the Text (track.trackName) match perfectly.
+        // We clean the title to remove "(Remastered)" junk.
+        titleDisplay = cleanTrackTitle(track.trackName);
         artistDisplay = track.artistName || "Unknown Artist";
       }
 

@@ -144,6 +144,7 @@ const App: React.FC = () => {
       )}
       {appState === AppState.QUESTION && activeQuestion && (
         <QuestionScreen 
+          key={activeQuestion.id}
           question={activeQuestion}
           onAnswer={handleAnswer}
           playCorrect={playCorrect}
